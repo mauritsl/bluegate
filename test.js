@@ -147,12 +147,11 @@ describe.only('BlueGate', function() {
   });
 
   it('can accept string params', function() {
-    BlueGate.process('GET /article/<title:string>', function() {
-      this.output = this.params;
+    BlueGate.process('GET /article/<title:string>', function(title) {
+      this.output = title;
     });
     return needle.getAsync(url + '/article/testarticle').then(function(data) {
-      expect(data[1]).to.be.an('object');
-      expect(data[1]).to.deep.equal({title: 'testarticle'});
+      expect(data[1]).to.equal('testarticle');
     });
   });
 

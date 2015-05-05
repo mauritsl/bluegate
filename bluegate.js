@@ -13,6 +13,7 @@ var compression = require('compression');
 var http = require('http');
 var Promise = require('bluebird');
 var url = require('url');
+var retrieveArguments = require('retrieve-arguments');
 
 /**
  * Create a new webserver.
@@ -93,7 +94,8 @@ BlueGate.prototype.addRegisterFunctions = function(scope) {
       scope['_' + phase.name + 'Callbacks'].push({
         path: path,
         callback: fn,
-        params: params
+        params: params,
+        arguments: retrieveArguments(fn)
       });
     };
   });
@@ -181,9 +183,11 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
         delete scope.res;
       }
       return Promise.resolve(callbacks).bind(scope)[iterator](function(callback) {
-        // @todo Provide params as function arguments.
-        this.params = callback.params;
-        var result = callback.callback.apply(this);
+        var args = [];
+        callback.arguments.forEach(function(name) {
+          args.push(callback.params[name]);
+        });
+        var result = callback.callback.apply(this, args);
         return Promise.resolve(result).then(function(output) {
           if ((typeof output !== 'undefined') && ['process', 'error'].indexOf(phase.name) >= 0) {
             scope.output = output;
@@ -222,6 +226,7 @@ BlueGate.prototype.getCallbacks = function(phase, method, path, scope) {
       }
       callbacks.push({
         callback: item.callback,
+        arguments: item.arguments,
         params: params
       });
     }
