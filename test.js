@@ -186,7 +186,8 @@ describe.only('BlueGate', function() {
       this.output = this.ip;
     });
     return needle.getAsync(url + '/ip-test').then(function(data) {
-      expect(data[1]).to.equal('127.0.0.1');
+      // Travis gives us the IP "::ffff:127.0.0.1", we will match that too.
+      expect(data[1]).to.contain('127.0.0.1');
     });
   });
 
