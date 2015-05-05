@@ -43,3 +43,28 @@ app.process('GET /user/<id:int>/picture', function(id) {
 
 ## Request flow
 
+Each request follows the steps below:
+
+- ``initialize`` can be used to register request specific handlers
+- ``authentication`` should be used to identify the client
+- ``authorisation`` should be used for permission checks
+- ``prevalidation`` does validation before preprocessing
+- ``preprocess`` does the preprocessing (e.g. parsing body)
+- ``postvalidation`` does validation after preprocessing
+- ``process`` will generate the output
+- ``postprocess`` can alter the output (e.g. for templating)
+- send response to client
+- ``after`` is for additional work (e.g. statistics)
+
+All remaining steps are skipped when an error occur before sending the response,
+In that case, we will arrive at the error-flow:
+
+- ``error`` is used to generate the error response for the client
+- send response to client
+- ``aftererror`` is for additional work (e.g. statistics)
+
+The name of each step is used as function name to register handlers for it.
+This can be done on the BlueGate instance (as shown in the example above) or
+on the ``this`` scope within a handler. The first argument is in the form
+``METHOD /path`` and determines which requests it can handle. This argument
+can be omitted to enable the handler for all requests.
