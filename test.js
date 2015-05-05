@@ -31,7 +31,7 @@ describe.only('BlueGate', function() {
 
   it('can register new handler', function() {
     BlueGate.process('GET /url-test', function() {
-      this.output = this.path;
+      return this.path;
     });
   });
 
@@ -44,7 +44,7 @@ describe.only('BlueGate', function() {
 
   it('will transform objects to JSON', function() {
     BlueGate.process('GET /json-test', function() {
-      this.output = {foo: 'bar'};
+      return {foo: 'bar'};
     });
     return needle.getAsync(url + '/json-test').then(function(data) {
       var body = data[1];
@@ -67,7 +67,7 @@ describe.only('BlueGate', function() {
     BlueGate.error(function() {
       expect(this.error instanceof Error).to.equal(true);
       this.status = 400;
-      this.output = 'Error!';
+      return 'Error!';
     });
     return needle.getAsync(url + '/500-test').then(function(data) {
       expect(data[0].statusCode).to.equal(400);
@@ -78,7 +78,7 @@ describe.only('BlueGate', function() {
   it('can add handlers in the initialize handler', function() {
     var init = function() {
       this.process(function() {
-        this.output = 'Hello world';
+        return 'Hello world';
       });
     };
     BlueGate.initialize('GET /init-test', init);
@@ -89,7 +89,7 @@ describe.only('BlueGate', function() {
 
   it('provides query arguments to callbacks', function() {
     BlueGate.process('GET /query-test', function() {
-      this.output = this.query;
+      return this.query;
     });
     return needle.getAsync(url + '/query-test?foo=bar&john=doe').then(function(data) {
       expect(data[1]).to.be.an('object');
@@ -100,7 +100,7 @@ describe.only('BlueGate', function() {
 
   it('uses octet-stream by default for buffers', function() {
     BlueGate.process('GET /buffer-test', function() {
-      this.output = new Buffer('test');
+      return new Buffer('test');
     });
     return needle.getAsync(url + '/buffer-test').then(function(data) {
       expect(data[0].headers).to.have.property('content-type', 'application/octet-stream');

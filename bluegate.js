@@ -182,9 +182,13 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
       }
       return Promise.resolve(callbacks).bind(scope)[iterator](function(callback) {
         // @todo Provide params as function arguments.
-        // @todo Let callback return output.
         this.params = callback.params;
-        return callback.callback.apply(this);
+        var result = callback.callback.apply(this);
+        return Promise.resolve(result).then(function(output) {
+          if ((typeof output !== 'undefined') && ['process', 'error'].indexOf(phase.name) >= 0) {
+            scope.output = output;
+          }
+        });
       }).catch(function(error) {
         scope.error = error;
         hasError = true;
