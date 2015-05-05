@@ -155,4 +155,39 @@ describe.only('BlueGate', function() {
       expect(data[1]).to.deep.equal({title: 'testarticle'});
     });
   });
+
+  it('provides HTTP headers in this.headers', function() {
+    BlueGate.process('GET /header-test', function() {
+      this.output = this.headers;
+    });
+    var options = {
+      headers: {'X-Test': '1234'}
+    };
+    return needle.getAsync(url + '/header-test', options).then(function(data) {
+      expect(data[1]).to.be.an('object');
+      expect(data[1]).to.have.property('x-test', '1234');
+    });
+  });
+
+  it('provides cookies in this.cookies', function() {
+    BlueGate.process('GET /cookie-test', function() {
+      this.output = this.cookies;
+    });
+    var options = {
+      headers: {'Cookie': 'foo=bar'}
+    };
+    return needle.getAsync(url + '/cookie-test', options).then(function(data) {
+      expect(data[1]).to.be.an('object');
+      expect(data[1]).to.have.property('foo', 'bar');
+    });
+  });
+
+  it('provides client IP in this.ip', function() {
+    BlueGate.process('GET /ip-test', function() {
+      this.output = this.ip;
+    });
+    return needle.getAsync(url + '/ip-test').then(function(data) {
+      expect(data[1]).to.equal('127.0.0.1');
+    });
+  });
 });

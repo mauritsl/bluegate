@@ -153,7 +153,6 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
   var method = req.method;
 
   var urlParts = url.parse(req.url, true);
-  // @todo Add headers, ip and cookies.
   // @todo Add start date (can be used for performance measures).
   var scope = {
     path: urlParts.pathname,
@@ -161,7 +160,10 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
     body: req.body,
     mime: null,
     status: 200,
-    query: urlParts.query
+    query: urlParts.query,
+    headers: req.headers,
+    cookies: req.cookies,
+    ip: req.connection.remoteAddress
   };
   this.addRegisterFunctions(scope);
 
