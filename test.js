@@ -190,4 +190,16 @@ describe.only('BlueGate', function() {
       expect(data[1]).to.equal('127.0.0.1');
     });
   });
+
+  it('provides request date in this.date', function() {
+    BlueGate.process('GET /date-test', function() {
+      this.output = this.date / 1000;
+    });
+    return needle.getAsync(url + '/date-test').then(function(data) {
+      // Check if the date is somewhere in the last second.
+      var start = parseFloat(data[1]);
+      var end = new Date() / 1000;
+      expect(start > end - 1 && start < end).to.equal(true);
+    });
+  });
 });
