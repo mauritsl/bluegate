@@ -124,7 +124,7 @@ BlueGate.prototype.transformPath = function(path) {
   var regexp = [];
   var params = [];
   path.forEach(function(part) {
-    var dynamic = part.match(/^\<([a-z][a-z0-9]*)\:(string|alpha|alphanum"int|signed|unsigned|float|uuid)\>$/i);
+    var dynamic = part.match(/^\<([a-z][a-z0-9]*)\:(string|alpha|alphanum|int|signed|unsigned|float|uuid)\>$/i);
     if (dynamic) {
       params.push({
         name: dynamic[1],
@@ -193,6 +193,12 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
             scope.output = output;
           }
         });
+      }).then(function() {
+        // No process callback is found. Follow the error path for a 404 page.
+        if (phase.name === 'process' && !callbacks.length) {
+          this.status = 404;
+          throw Error('Not found');
+        }
       }).catch(function(error) {
         scope.error = error;
         hasError = true;
@@ -221,7 +227,13 @@ BlueGate.prototype.getCallbacks = function(phase, method, path, scope) {
       var params = {};
       for (var i = 0; i < item.params.length; ++i) {
         var value = match[i + 1];
-        // @todo Transform type.
+        // Numeric types are casted to a number, others are passed as strings.
+        if (['int', 'signed', 'unsigned', 'float'].indexOf(item.params[i].type) >= 0) {
+          value = parseFloat(value);
+        }
+        if (item.params[i].type === 'uuid') {
+          value = value.toLowerCase();
+        }
         params[item.params[i].name] = value;
       }
       callbacks.push({
@@ -280,7 +292,9 @@ var sendHandler = function() {
  */
 var errorHandler = function() {
   // @todo Set status to 400 for errors coming from validate callbacks.
-  this.status = 500;
+  if (this.status === 200) {
+    this.status = 500;
+  }
   this.output = {errors: ['Internal server error']};
 };
 

@@ -42,6 +42,12 @@ describe.only('BlueGate', function() {
     });
   });
 
+  it('returns a 404 page for unknown paths', function() {
+    return needle.getAsync(url + '/not-found').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
   it('will transform objects to JSON', function() {
     BlueGate.process('GET /json-test', function() {
       return {foo: 'bar'};
@@ -64,7 +70,7 @@ describe.only('BlueGate', function() {
   });
 
   it('can alter the error response', function() {
-    BlueGate.error(function() {
+    BlueGate.error('GET /500-test', function() {
       expect(this.error instanceof Error).to.equal(true);
       this.status = 400;
       return 'Error!';
@@ -146,15 +152,6 @@ describe.only('BlueGate', function() {
     });
   });
 
-  it('can accept string params', function() {
-    BlueGate.process('GET /article/<title:string>', function(title) {
-      this.output = title;
-    });
-    return needle.getAsync(url + '/article/testarticle').then(function(data) {
-      expect(data[1]).to.equal('testarticle');
-    });
-  });
-
   it('provides HTTP headers in this.headers', function() {
     BlueGate.process('GET /header-test', function() {
       this.output = this.headers;
@@ -200,6 +197,219 @@ describe.only('BlueGate', function() {
       var start = parseFloat(data[1]);
       var end = new Date() / 1000;
       expect(start > end - 1 && start < end).to.equal(true);
+    });
+  });
+
+  /* Test params */
+
+  it('can accept string params', function() {
+    BlueGate.process('GET /article/<title:string>', function(title) {
+      return title;
+    });
+    return needle.getAsync(url + '/article/testarticle').then(function(data) {
+      expect(data[1]).to.equal('testarticle');
+    });
+  });
+
+  it('cannot accept empty strings in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-int/').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
+  it('can accept alpha params', function() {
+    BlueGate.process('GET /node/by-alpha/<id:alpha>', function(id) {
+      // Wrap value in an object, so it will use JSON encoding.
+      return {
+        value: id
+      };
+    });
+    return needle.getAsync(url + '/node/by-alpha/Asdf').then(function(data) {
+      expect(data[1].value).to.be.a('string');
+      expect(data[1].value).to.equal('Asdf');
+    });
+  });
+
+  it('cannot accept non-alphanumeric characters in alpha params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-alpha/as-df').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
+  it('cannot accept numeric characters in alpha params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-alpha/asdf123').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
+  it('can accept alphanum params', function() {
+    BlueGate.process('GET /node/by-alphanum/<id:alphanum>', function(id) {
+      // Wrap value in an object, so it will use JSON encoding.
+      return {
+        value: id
+      };
+    });
+    return needle.getAsync(url + '/node/by-alphanum/Asdf123').then(function(data) {
+      expect(data[1].value).to.be.a('string');
+      expect(data[1].value).to.equal('Asdf123');
+    });
+  });
+
+  it('cannot accept non-alphanumeric characters in alphanum params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-alphanum/as-df').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
+  it('can accept int params', function() {
+    BlueGate.process('GET /node/by-int/<id:int>', function(id) {
+      // Wrap value in an object, so it will use JSON encoding.
+      return {
+        value: id
+      };
+    });
+    return needle.getAsync(url + '/node/by-int/123').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(123);
+    });
+  });
+
+  it('cannot accept negatives as int in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-int/-1').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
+  it('cannot accept zero as int in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-int/0').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
+  it('can accept unsigned params', function() {
+    BlueGate.process('GET /node/by-unsigned/<id:unsigned>', function(id) {
+      // Wrap value in an object, so it will use JSON encoding.
+      return {
+        value: id
+      };
+    });
+    return needle.getAsync(url + '/node/by-unsigned/123').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(123);
+    });
+  });
+
+  it('cannot accept negatives as unsigned in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-unsigned/-1').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
+  it('can accept zero as unsigned in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-unsigned/0').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(0);
+    });
+  });
+
+  it('can accept signed params', function() {
+    BlueGate.process('GET /node/by-signed/<id:signed>', function(id) {
+      // Wrap value in an object, so it will use JSON encoding.
+      return {
+        value: id
+      };
+    });
+    return needle.getAsync(url + '/node/by-signed/123').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(123);
+    });
+  });
+
+  it('can accept negatives as signed in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-signed/-1').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(-1);
+    });
+  });
+
+  it('can accept zero as signed in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-signed/0').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(0);
+    });
+  });
+
+  it('can accept float params', function() {
+    BlueGate.process('GET /node/by-float/<id:float>', function(id) {
+      // Wrap value in an object, so it will use JSON encoding.
+      return {
+        value: id
+      };
+    });
+    return needle.getAsync(url + '/node/by-float/12.3').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(12.3);
+    });
+  });
+
+  it('can accept negatives as float in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-float/-1').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(-1);
+    });
+  });
+
+  it('can accept zero as float in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-float/0').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(0);
+    });
+  });
+
+  it('can accept floats with only decimals in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-float/.5').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(.5);
+    });
+  });
+
+  it('can accept uuid params', function() {
+    BlueGate.process('GET /node/by-uuid/<id:uuid>', function(id) {
+      // Wrap value in an object, so it will use JSON encoding.
+      return {
+        value: id
+      };
+    });
+    return needle.getAsync(url + '/node/by-uuid/3D7FD040-7054-4075-B68F-CE6099E9E6BF').then(function(data) {
+      expect(data[1].value).to.be.a('string');
+      expect(data[1].value.toUpperCase()).to.equal('3D7FD040-7054-4075-B68F-CE6099E9E6BF');
+    });
+  });
+
+  it('cannot accept non-uuids in uuid params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-uuid/3D7FD040').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
+  it('will cast uuid params to lowercase for consistency', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-uuid/3D7FD040-7054-4075-B68F-CE6099E9E6BF').then(function(data) {
+      expect(data[1].value).to.equal('3D7FD040-7054-4075-B68F-CE6099E9E6BF'.toLowerCase());
     });
   });
 });
