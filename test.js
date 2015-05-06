@@ -152,6 +152,8 @@ describe.only('BlueGate', function() {
     });
   });
 
+  /* Scope attributes */
+
   it('provides HTTP headers in this.headers', function() {
     BlueGate.process('GET /header-test', function() {
       this.output = this.headers;
@@ -213,7 +215,14 @@ describe.only('BlueGate', function() {
 
   it('cannot accept empty strings in params', function() {
     // Use the callback from last case.
-    return needle.getAsync(url + '/node/by-int/').then(function(data) {
+    return needle.getAsync(url + '/article/').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
+  it('cannot accept slashes in string param', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/article/lorem/ipsum').then(function(data) {
       expect(data[0].statusCode).to.equal(404);
     });
   });
@@ -410,6 +419,33 @@ describe.only('BlueGate', function() {
     // Use the callback from last case.
     return needle.getAsync(url + '/node/by-uuid/3D7FD040-7054-4075-B68F-CE6099E9E6BF').then(function(data) {
       expect(data[1].value).to.equal('3D7FD040-7054-4075-B68F-CE6099E9E6BF'.toLowerCase());
+    });
+  });
+
+  it('can accept path params', function() {
+    BlueGate.process('GET /node/by-path/<id:path>', function(id) {
+      // Wrap value in an object, so it will use JSON encoding.
+      return {
+        value: id
+      };
+    });
+    return needle.getAsync(url + '/node/by-path/this/is/a/test').then(function(data) {
+      expect(data[1].value).to.be.a('string');
+      expect(data[1].value).to.equal('this/is/a/test');
+    });
+  });
+
+  it('will not match empty path params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-path/').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
+  it('will not include trailing slashes in path params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-path/trailing/slash/').then(function(data) {
+      expect(data[1].value).to.equal('trailing/slash');
     });
   });
 });

@@ -118,13 +118,14 @@ BlueGate.prototype.transformPath = function(path) {
     'signed': '\\-?[0-9]+',
     'unsigned': '[0-9]+',
     'float': '\\-?[0-9\\.]+',
-    'uuid': '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+    'uuid': '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
+    'path': '.+?'
   };
   path = path.split('/');
   var regexp = [];
   var params = [];
   path.forEach(function(part) {
-    var dynamic = part.match(/^\<([a-z][a-z0-9]*)\:(string|alpha|alphanum|int|signed|unsigned|float|uuid)\>$/i);
+    var dynamic = part.match(new RegExp('^\<([a-z][a-z0-9]*)\:(' + Object.keys(types).join('|') + ')\>$', 'i'));
     if (dynamic) {
       params.push({
         name: dynamic[1],
@@ -156,7 +157,8 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
 
   var urlParts = url.parse(req.url, true);
   var scope = {
-    path: urlParts.pathname,
+    // Trim trailing slashes from path.
+    path: urlParts.pathname.replace(/(.)\/+$/, '$1'),
     method: method,
     body: req.body,
     mime: null,
@@ -232,6 +234,7 @@ BlueGate.prototype.getCallbacks = function(phase, method, path, scope) {
           value = parseFloat(value);
         }
         if (item.params[i].type === 'uuid') {
+          // Uuid's are always passed in lowercase for consistency.
           value = value.toLowerCase();
         }
         params[item.params[i].name] = value;
