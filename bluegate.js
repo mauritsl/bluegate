@@ -34,17 +34,17 @@ var BlueGate = function() {
   });
 
   this.phases = [
-    {name: 'initialize', concurrent: true, error: false},
-    {name: 'authentication', concurrent: false, error: false},
-    {name: 'authorisation', concurrent: false, error: false},
-    {name: 'prevalidation', concurrent: true, error: false},
-    {name: 'preprocess', concurrent: false, error: false},
-    {name: 'postvalidation', concurrent: true, error: false},
-    {name: 'process', concurrent: false, error: false},
-    {name: 'postprocess', concurrent: false, error: false},
+    {name: 'initialize', concurrent: true, error: false, errorStatus: 500},
+    {name: 'authentication', concurrent: false, error: false, errorStatus: 401},
+    {name: 'authorisation', concurrent: false, error: false, errorStatus: 403},
+    {name: 'prevalidation', concurrent: true, error: false, errorStatus: 400},
+    {name: 'preprocess', concurrent: false, error: false, errorStatus: 500},
+    {name: 'postvalidation', concurrent: true, error: false, errorStatus: 400},
+    {name: 'process', concurrent: false, error: false, errorStatus: 500},
+    {name: 'postprocess', concurrent: false, error: false, errorStatus: 500},
     {name: '_send', concurrent: false, error: false},
     {name: 'after', concurrent: true, error: false},
-    {name: 'error', concurrent: false, error: true},
+    {name: 'error', concurrent: false, error: true, errorStatus: 500},
     {name: '_senderror', concurrent: false, error: true},
     {name: 'aftererror', concurrent: true, error: true}
   ];
@@ -202,6 +202,10 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
           throw Error('Not found');
         }
       }).catch(function(error) {
+        // Set error status code, when not already set.
+        if (this.status < 300 && typeof phase.errorStatus !== 'undefined') {
+          this.status = phase.errorStatus;
+        }
         scope.error = error;
         hasError = true;
       });
@@ -294,11 +298,15 @@ var sendHandler = function() {
  * Error handler.
  */
 var errorHandler = function() {
-  // @todo Set status to 400 for errors coming from validate callbacks.
-  if (this.status === 200) {
-    this.status = 500;
-  }
-  this.output = {errors: ['Internal server error']};
+  var messages = {
+    400: 'Bad request',
+    401: 'Authentication required',
+    403: 'Permission denied',
+    404: 'Not found',
+    500: 'Internal server error'
+  };
+  var error = typeof messages[this.status] === 'undefined' ? 500 : messages[this.status];
+  this.output = {errors: [error]};
 };
 
 module.exports = BlueGate;

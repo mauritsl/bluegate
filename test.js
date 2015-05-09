@@ -59,17 +59,36 @@ describe.only('BlueGate', function() {
     });
   });
 
-  it('will give a 500 when unknown errors occur', function() {
-    BlueGate.process('GET /500-test', function() {
+  [
+    {name: 'initialize', status: 500, message: 'Internal server error'},
+    {name: 'authentication', status: 401, message: 'Authentication required'},
+    {name: 'authorisation', status: 403, message: 'Permission denied'},
+    {name: 'prevalidation', status: 400, message: 'Bad request'},
+    {name: 'preprocess', status: 500, message: 'Internal server error'},
+    {name: 'postvalidation', status: 400, message: 'Bad request'},
+    {name: 'process', status: 500, message: 'Internal server error'},
+    {name: 'postprocess', status: 500, message: 'Internal server error'}
+  ].forEach(function(phase) {
+    var outputFunction = function() {
+      return '';
+    };
+    var errorFunction = function() {
       throw Error('Fail');
-    });
-    return needle.getAsync(url + '/500-test').then(function(data) {
-      expect(data[0].statusCode).to.equal(500);
-      expect(data[1]).to.deep.equal({errors: ['Internal server error']});
+    };
+    it('will give a ' + phase.status + ' when errors occur during ' + phase.name, function() {
+      BlueGate.process('GET /http-status-' + phase.name, outputFunction);
+      BlueGate[phase.name]('GET /http-status-' + phase.name, errorFunction);
+      return needle.getAsync(url + '/http-status-' + phase.name).then(function(data) {
+        expect(data[0].statusCode).to.equal(phase.status);
+        expect(data[1]).to.deep.equal({errors: [phase.message]});
+      });
     });
   });
 
   it('can alter the error response', function() {
+    BlueGate.process('GET /500-test', function() {
+      throw Error('Fail');
+    });
     BlueGate.error('GET /500-test', function() {
       expect(this.error instanceof Error).to.equal(true);
       this.status = 400;
