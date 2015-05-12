@@ -467,4 +467,35 @@ describe.only('BlueGate', function() {
       expect(data[1].value).to.equal('trailing/slash');
     });
   });
+
+  it('can add HTTP headers', function() {
+    BlueGate.process('GET /set-header', function(id) {
+      this.setHeader('X-Generator', 'Test');
+    });
+    return needle.getAsync(url + '/set-header').then(function(data) {
+      expect(data[0].headers).to.have.property('x-generator', 'Test');
+    });
+  });
+
+  it('can append HTTP headers', function() {
+    BlueGate.process('GET /append-header', function(id) {
+      this.setHeader('Cookie', 'foo=bar', true);
+      this.setHeader('Cookie', 'bar=baz', true);
+    });
+    return needle.getAsync(url + '/append-header').then(function(data) {
+      // Note that needle joins the header values.
+      // @todo: Validate this by using the raw response, without HTTP library.
+      expect(data[0].headers).to.have.property('cookie', ['foo=bar', 'bar=baz'].join(', '));
+    });
+  });
+
+  it('handles mime with precedence over setHeader', function() {
+    BlueGate.process('GET /set-mime-header', function(id) {
+      this.mime = 'text/xml; charset=utf-8';
+      this.setHeader('Content-Type', 'application/json; charset=utf-8');
+    });
+    return needle.getAsync(url + '/set-mime-header').then(function(data) {
+      expect(data[0].headers).to.have.property('content-type', 'text/xml; charset=utf-8');
+    });
+  });
 });

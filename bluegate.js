@@ -144,6 +144,47 @@ BlueGate.prototype.transformPath = function(path) {
 };
 
 /**
+ * Generate scope object.
+ *
+ * @private
+ * @method generateScope
+ * @param {object} req
+ * @return {object}
+ */
+BlueGate.prototype.generateScope = function(req) {
+  var urlParts = url.parse(req.url, true);
+  var scope = {
+    // Trim trailing slashes from path.
+    path: urlParts.pathname.replace(/(.)\/+$/, '$1'),
+    method: req.method,
+    body: req.body,
+    mime: null,
+    status: 200,
+    query: urlParts.query,
+    headers: req.headers,
+    cookies: req.cookies,
+    ip: req.connection.remoteAddress,
+    date: new Date(),
+    _outputHeaders: {},
+    setHeader: function(name, value, append) {
+      // @todo: Headers are set in lowercase now. What is the preferred behaviour?
+      name = name.toLowerCase();
+      if (typeof this._outputHeaders[name] === 'undefined') {
+        this._outputHeaders[name] = [value];
+      }
+      else if (append) {
+        this._outputHeaders[name].push(value);
+      }
+      else {
+        this._outputHeaders[name] = [value];
+      }
+    }
+  };
+  this.addRegisterFunctions(scope);
+  return scope;
+};
+
+/**
  * Handle request.
  *
  * @private
@@ -155,21 +196,7 @@ BlueGate.prototype.transformPath = function(path) {
 BlueGate.prototype.handleRequest = function(req, res, next) {
   var method = req.method;
 
-  var urlParts = url.parse(req.url, true);
-  var scope = {
-    // Trim trailing slashes from path.
-    path: urlParts.pathname.replace(/(.)\/+$/, '$1'),
-    method: method,
-    body: req.body,
-    mime: null,
-    status: 200,
-    query: urlParts.query,
-    headers: req.headers,
-    cookies: req.cookies,
-    ip: req.connection.remoteAddress,
-    date: new Date()
-  };
-  this.addRegisterFunctions(scope);
+  var scope = this.generateScope(req);
 
   var hasError = false;
   Promise.resolve(this.phases).bind(this).each(function(phase) {
@@ -270,6 +297,8 @@ BlueGate.prototype.close = function() {
  * Send response.
  */
 var sendHandler = function() {
+  var self = this;
+
   var mime;
   if (typeof this.output === 'string') {
     mime = 'text/html';
@@ -289,8 +318,12 @@ var sendHandler = function() {
     mime += '; charset=utf-8';
   }
 
+  this.setHeader('Content-Type', mime);
+  Object.keys(this._outputHeaders).forEach(function(name) {
+    self.res.setHeader(name, self._outputHeaders[name]);
+  });
+
   this.res.statusCode = this.status;
-  this.res.setHeader('Content-Type', mime);
   this.res.end(this.output);
 };
 

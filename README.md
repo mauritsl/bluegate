@@ -117,6 +117,26 @@ app.process('GET /image', function() {
 });
 ```
 
+### HTTP headers
+
+HTTP headers can be set using the ``setHeader`` function.
+
+```javascript
+app.preprocess('GET /path', function() {
+  this.setHeader('X-Generator', 'CMS');
+});
+```
+
+An optional thirth argument can be provided to append headers instead of
+replacing them.
+
+```javascript
+app.preprocess('GET /path', function() {
+  this.setHeader('Cookie', 'foo=bar');
+  this.setHeader('Cookie', 'bar=baz');
+});
+```
+
 ### HTTP status code
 
 The HTTP status code is 200 by default. This code is changed automatically
