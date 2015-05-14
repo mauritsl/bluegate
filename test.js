@@ -519,4 +519,29 @@ describe.only('BlueGate', function() {
       expect(data[0].headers).to.have.property('content-type', 'text/xml; charset=utf-8');
     });
   });
+
+  it('knows that connection is (not) secure', function() {
+    BlueGate.process('GET /check-secure', function(id) {
+      return {secure: this.secure};
+    });
+    return needle.getAsync(url + '/check-secure').then(function(data) {
+      expect(data[1].secure).to.equal(false);
+    }).then(function() {
+      var options = {
+        headers: {'X-Forwarded-Proto': 'https'}
+      };
+      return needle.getAsync(url + '/check-secure', options);
+    }).then(function(data) {
+      expect(data[1].secure).to.equal(true);
+    }).then(function() {
+      // The value may be a quoted string.
+      // @see http://tools.ietf.org/html/rfc7230#section-3.2.6
+      var options = {
+        headers: {'X-Forwarded-Proto': '"https"'}
+      };
+      return needle.getAsync(url + '/check-secure', options);
+    }).then(function(data) {
+      expect(data[1].secure).to.equal(true);
+    });
+  });
 });

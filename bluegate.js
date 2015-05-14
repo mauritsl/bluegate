@@ -165,6 +165,7 @@ BlueGate.prototype.generateScope = function(req) {
     cookies: req.cookies,
     ip: req.connection.remoteAddress,
     date: new Date(),
+    secure: false,
     _outputHeaders: {},
     setHeader: function(name, value, append) {
       name = name.toLowerCase();
@@ -179,6 +180,9 @@ BlueGate.prototype.generateScope = function(req) {
       }
     }
   };
+  if (scope.headers['x-forwarded-proto'] === 'https' || scope.headers['x-forwarded-proto'] === '"https"') {
+    scope.secure = true;
+  }
   this.addRegisterFunctions(scope);
   return scope;
 };

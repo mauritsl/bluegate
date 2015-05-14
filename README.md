@@ -100,6 +100,7 @@ headers  | object | {'User-Agent': '...'} | yes
 cookies  | object | {sessionid: '...'}    | yes
 ip       | string | 127.0.0.1             | yes
 date     | date   |                       | yes
+secure   | bool   | false                 | yes
 
 ### Output
 
