@@ -167,7 +167,6 @@ BlueGate.prototype.generateScope = function(req) {
     date: new Date(),
     _outputHeaders: {},
     setHeader: function(name, value, append) {
-      // @todo: Headers are set in lowercase now. What is the preferred behaviour?
       name = name.toLowerCase();
       if (typeof this._outputHeaders[name] === 'undefined') {
         this._outputHeaders[name] = [value];
@@ -320,7 +319,11 @@ var sendHandler = function() {
 
   this.setHeader('Content-Type', mime);
   Object.keys(this._outputHeaders).forEach(function(name) {
-    self.res.setHeader(name, self._outputHeaders[name]);
+    // Convert case ("content-type" to "Content-Type").
+    var casedName = name.replace(/(^.|\-.)/g, function(part) {
+      return part.toUpperCase();
+    });
+    self.res.setHeader(casedName, self._outputHeaders[name]);
   });
 
   this.res.statusCode = this.status;

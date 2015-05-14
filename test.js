@@ -487,7 +487,7 @@ describe.only('BlueGate', function() {
     }).on('data', function(chunk) {
       data += chunk.toString();
     }).on('close', function() {
-      expect(data).to.contain('x-generator: Test');
+      expect(data).to.contain('X-Generator: Test');
       done();
     });
   });
@@ -504,8 +504,8 @@ describe.only('BlueGate', function() {
     }).on('data', function(chunk) {
       data += chunk.toString();
     }).on('close', function() {
-      expect(data).to.contain('cookie: foo=bar');
-      expect(data).to.contain('cookie: bar=baz');
+      expect(data).to.contain('Cookie: foo=bar');
+      expect(data).to.contain('Cookie: bar=baz');
       done();
     });
   });
