@@ -40,6 +40,8 @@
     "compression": "^1.4.3",
     "connect": "^3.3.5",
     "cookie-parser": "^1.3.4",
+    "forwarded-for": "^1.0.0",
+    "lodash": "^3.8.0",
     "retrieve-arguments": "^1.0.1"
   },
   "devDependencies": {

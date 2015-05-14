@@ -168,3 +168,27 @@ app.process('POST /object', function() {
   return {messages: ['Created']);
 });
 ```
+
+## Security
+
+### Running behind a proxy server
+
+When you are running behind a proxy server, you should set the
+``trustedProxies`` option. This contains a list of IP-addresses used by your
+proxy servers. The default value for this list is ``127.0.0.1``. All proxies
+must add the IP-address to the ``X-Forwarded-For`` header. The ``this.ip``
+variable used in handlers will contain the client IP, even when the client tries
+to spoof the IP-address by sending a false ``X-Forwarded-For`` header.
+
+```javascript
+var app = new BlueGate({
+  trustedProxies: ['192.168.1.10', '192.168.1.11']
+});
+```
+
+### Running behind SSL
+
+The ``this.secure`` variable in handles indicates if the client is using HTTPS
+for this request. This flag relies on the ``X-Forwarded-Proto`` header, which
+should be set by reverse proxies (which may require extra configuration).
+This value can be spoofed by the client.

@@ -14,13 +14,19 @@ var http = require('http');
 var Promise = require('bluebird');
 var url = require('url');
 var retrieveArguments = require('retrieve-arguments');
+var forwarded = require('forwarded-for');
+var _ = require('lodash');
 
 /**
  * Create a new webserver.
  * @constructor
  */
-var BlueGate = function() {
+var BlueGate = function(options) {
   var self = this;
+
+  this._options = _.defaults({
+    trustedProxies: ['127.0.0.1']
+  }, options);
 
   this._app = connect();
 
@@ -163,7 +169,7 @@ BlueGate.prototype.generateScope = function(req) {
     query: urlParts.query,
     headers: req.headers,
     cookies: req.cookies,
-    ip: req.connection.remoteAddress,
+    ip: forwarded(req, req.headers, this._options.trustedProxies).ip,
     date: new Date(),
     secure: false,
     _outputHeaders: {},
