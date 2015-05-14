@@ -7,11 +7,19 @@ var chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 var expect = chai.expect;
 
+var net = require('net');
 var needle = Promise.promisifyAll(require('needle'));
 
 describe.only('BlueGate', function() {
   var BlueGate;
   var url = 'http://localhost:3000';
+
+  // Options to use for net.connect().
+  var netOptions = {
+    host: 'localhost',
+    port: 3000,
+    allowHalfOpen: true
+  };
 
   before(function() {
     BlueGate = new (require('./bluegate.js'));
@@ -468,24 +476,37 @@ describe.only('BlueGate', function() {
     });
   });
 
-  it('can add HTTP headers', function() {
+  it('can add HTTP headers', function(done) {
     BlueGate.process('GET /set-header', function(id) {
       this.setHeader('X-Generator', 'Test');
     });
-    return needle.getAsync(url + '/set-header').then(function(data) {
-      expect(data[0].headers).to.have.property('x-generator', 'Test');
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /set-header HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('x-generator: Test');
+      done();
     });
   });
 
-  it('can append HTTP headers', function() {
+  it('can append HTTP headers', function(done) {
     BlueGate.process('GET /append-header', function(id) {
       this.setHeader('Cookie', 'foo=bar', true);
       this.setHeader('Cookie', 'bar=baz', true);
     });
-    return needle.getAsync(url + '/append-header').then(function(data) {
-      // Note that needle joins the header values.
-      // @todo: Validate this by using the raw response, without HTTP library.
-      expect(data[0].headers).to.have.property('cookie', ['foo=bar', 'bar=baz'].join(', '));
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /append-header HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('cookie: foo=bar');
+      expect(data).to.contain('cookie: bar=baz');
+      done();
     });
   });
 
