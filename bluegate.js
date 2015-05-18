@@ -58,6 +58,18 @@ var BlueGate = function(options) {
   ];
   this.addRegisterFunctions(this);
 
+  this._types = {
+    'string': '[^\\/]+',
+    'alpha': '[a-z]+',
+    'alphanum': '[a-z0-9]+',
+    'int': '[1-9][0-9]+',
+    'signed': '\\-?[0-9]+',
+    'unsigned': '[0-9]+',
+    'float': '\\-?[0-9\\.]+',
+    'uuid': '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
+    'path': '.+?'
+  };
+
   this._send(sendHandler);
   this.error(errorHandler);
   this._senderror(sendHandler);
@@ -118,17 +130,7 @@ BlueGate.prototype.addRegisterFunctions = function(scope) {
  * @return {object}
  */
 BlueGate.prototype.transformPath = function(path) {
-  var types = {
-    'string': '[^\\/]+',
-    'alpha': '[a-z]+',
-    'alphanum': '[a-z0-9]+',
-    'int': '[1-9][0-9]+',
-    'signed': '\\-?[0-9]+',
-    'unsigned': '[0-9]+',
-    'float': '\\-?[0-9\\.]+',
-    'uuid': '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
-    'path': '.+?'
-  };
+  var types = this._types;
   path = path.split('/');
   var regexp = [];
   var params = [];
@@ -160,6 +162,7 @@ BlueGate.prototype.transformPath = function(path) {
  * @return {object}
  */
 BlueGate.prototype.generateScope = function(req) {
+  var self = this;
   var urlParts = url.parse(req.url, true);
   var scope = {
     // Trim trailing slashes from path.
@@ -168,7 +171,17 @@ BlueGate.prototype.generateScope = function(req) {
     body: req.body,
     mime: null,
     status: 200,
-    query: urlParts.query,
+    query: Object.keys(urlParts.query),
+    getQuery: function(name, type, defaultValue) {
+      if (typeof self._types[type] === 'undefined') {
+        throw Error('Unknown type ' + type);
+      }
+      var pattern = new RegExp(self._types[type], 'i');
+      if (typeof urlParts.query[name] !== 'undefined' && String(urlParts.query[name]).match(pattern)) {
+        return self.convertValue(urlParts.query[name], type);
+      }
+      return typeof defaultValue === 'undefined' ? null : defaultValue;
+    },
     headers: req.headers,
     cookies: req.cookies,
     ip: forwarded(req, req.headers, this._options.trustedProxies).ip,
@@ -280,6 +293,27 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
 };
 
 /**
+ * Convert value to provided type.
+ *
+ * @private
+ * @method convertValue
+ * @param {mixed} value
+ * @param {string} type
+ * @return {mixed}
+ */
+BlueGate.prototype.convertValue = function(value, type) {
+  // Numeric types are casted to a number, others are passed as strings.
+  if (['int', 'signed', 'unsigned', 'float'].indexOf(type) >= 0) {
+    value = parseFloat(value);
+  }
+  if (type === 'uuid') {
+    // Uuid's are always passed in lowercase for consistency.
+    value = value.toLowerCase();
+  }
+  return value;
+};
+
+/**
  * Get callbacks that match the given phase, method and path.
  *
  * @private
@@ -291,6 +325,7 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
  * @return {Array}
  */
 BlueGate.prototype.getCallbacks = function(phase, method, path, scope) {
+  var self = this;
   var callbacks = [];
   var name = method + ' ' + path;
   var checkItem = function(item) {
@@ -298,15 +333,7 @@ BlueGate.prototype.getCallbacks = function(phase, method, path, scope) {
     if (match) {
       var params = {};
       for (var i = 0; i < item.params.length; ++i) {
-        var value = match[i + 1];
-        // Numeric types are casted to a number, others are passed as strings.
-        if (['int', 'signed', 'unsigned', 'float'].indexOf(item.params[i].type) >= 0) {
-          value = parseFloat(value);
-        }
-        if (item.params[i].type === 'uuid') {
-          // Uuid's are always passed in lowercase for consistency.
-          value = value.toLowerCase();
-        }
+        var value = self.convertValue(match[i + 1], item.params[i].type);
         params[item.params[i].name] = value;
       }
       callbacks.push({

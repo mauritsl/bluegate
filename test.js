@@ -120,14 +120,54 @@ describe.only('BlueGate', function() {
     });
   });
 
-  it('provides query arguments to callbacks', function() {
+  it('provides query argument names to callbacks', function() {
     BlueGate.process('GET /query-test', function() {
       return this.query;
     });
     return needle.getAsync(url + '/query-test?foo=bar&john=doe').then(function(data) {
-      expect(data[1]).to.be.an('object');
-      expect(data[1]).to.have.property('foo', 'bar');
-      expect(data[1]).to.have.property('john', 'doe');
+      expect(data[1]).to.be.an('array');
+      expect(data[1]).to.include('foo');
+      expect(data[1]).to.include('john');
+    });
+  });
+
+  it('can get query argument value', function() {
+    BlueGate.process('GET /query-value', function() {
+      return {
+        asInt: this.getQuery('test', 'int'),
+        asString: this.getQuery('test', 'string')
+      };
+    });
+    return needle.getAsync(url + '/query-value?test=34').then(function(data) {
+      expect(data[1].asInt).to.equal(34);
+      expect(data[1].asString).to.equal('34');
+    });
+  });
+
+  it('will use null for query value when not provided', function() {
+    BlueGate.process('GET /query-not-provided', function() {
+      return {value: this.getQuery('test', 'int')};
+    });
+    return needle.getAsync(url + '/query-not-provided').then(function(data) {
+      expect(data[1].value).to.equal(null);
+    });
+  });
+
+  it('will use default value for query value when not provided', function() {
+    BlueGate.process('GET /query-default', function() {
+      return {value: this.getQuery('test', 'int', 1)};
+    });
+    return needle.getAsync(url + '/query-default').then(function(data) {
+      expect(data[1].value).to.equal(1);
+    });
+  });
+
+  it('cannot get query argument value with unknown type', function() {
+    BlueGate.process('GET /query-wrong-type', function() {
+      this.getQuery('test', 'test');
+    });
+    return needle.getAsync(url + '/query-wrong-type?test=34').then(function(data) {
+      expect(data[0].statusCode).to.equal(500);
     });
   });
 

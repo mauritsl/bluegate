@@ -95,7 +95,7 @@ method   | string | GET                   | yes
 body     | buffer |                       | yes
 mime     | string | text/html             | no
 status   | int    | 200                   | no
-query    | object | {page: 3}             | yes
+query    | object | ['page']              | yes
 headers  | object | {'User-Agent': '...'} | yes
 cookies  | object | {sessionid: '...'}    | yes
 ip       | string | 127.0.0.1             | yes
@@ -107,8 +107,8 @@ secure   | bool   | false                 | yes
 Path parameters are passed as function arguments, as shown in the last code
 example. The following types are available:
 
-Type   | Description
-----|---
+Type     | Description
+---------|--------------------------------------------------------
 string   | Matches all characters except forward slashes ("/")
 alpha    | Alpha characters (a-z A-Z)
 alphanum | Alphanumeric characters (a-z A-Z 0-9)
@@ -118,6 +118,23 @@ unsigned | Unsigned integer (0..n)
 float    | Floats (e.g. -34.3, .3 or 63)
 uuid     | Matches UUID versions 1 to 5
 path     | Matches all characters including forward slashes ("/")
+
+### Query arguments
+
+Values from the path query ("/news?page=34") can be retreived using
+``this.getQuery``. The first argument is the name and the second is the value
+type. A default value can be provided as thirth argument (defaults to ``null``).
+The default value is returned when the variable is missing or its value does not
+match the requested type.
+
+```javascript
+app.process('GET /news', function() {
+  var page = this.getQuery('page', 'int', 1);
+});
+```
+
+An array of all available query variables is available in ``this.query``. This
+contains a list of names only, to enforce validation when getting the value.
 
 ### Output
 
