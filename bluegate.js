@@ -174,6 +174,9 @@ BlueGate.prototype.generateScope = function(req) {
     secure: false,
     _outputHeaders: {},
     setHeader: function(name, value, append) {
+      if (name.match(/[^ -~]/) || value.match(/[^ -~]/)) {
+        throw Error('HTTP-header cannot contain non-printable characters');
+      }
       name = name.toLowerCase();
       if (typeof this._outputHeaders[name] === 'undefined') {
         this._outputHeaders[name] = [value];
@@ -184,6 +187,30 @@ BlueGate.prototype.generateScope = function(req) {
       else {
         this._outputHeaders[name] = [value];
       }
+    },
+    setCookie: function(name, value, expires, path, domain, httpOnly, secure) {
+      httpOnly = httpOnly !== false;
+      secure = typeof secure === 'boolean' ? secure : this.secure;
+      if (String(name).match(/([^!-~]|\,\;\=)/) || String(value).match(/([^!-~]|\,\;)/)) {
+        throw Error('Illegal characters in cookie name or value');
+      }
+      var parts = [name + '=' + value];
+      if (expires instanceof Date) {
+        parts.push('Expires=' + expires.toGMTString());
+      }
+      if (path && !String(path).match(/([^ -~]|\,\;)/)) {
+        parts.push('Path=' + path);
+      }
+      if (domain && !String(domain).match(/([^!-~]|\,\;)/)) {
+        parts.push('Domain=' + domain);
+      }
+      if (secure) {
+        parts.push('Secure');
+      }
+      if (httpOnly) {
+        parts.push('HttpOnly');
+      }
+      this.setHeader('Set-Cookie', parts.join('; '), true);
     }
   };
   if (scope.headers['x-forwarded-proto'] === 'https' || scope.headers['x-forwarded-proto'] === '"https"') {

@@ -118,6 +118,50 @@ app.process('GET /image', function() {
 });
 ```
 
+### Cookies
+
+Use the ``setCookie`` function to set a cookie. Arguments are:
+
+- Name
+  May not contain whitespace, comma, semicolon, equals sign or non-printable
+  characters.
+- Value
+  May not contain whitespace, comma, semicolon or non-printable characters.
+- Expires
+  Given as JavaScript ``Date``-object. Optional, defaults to not expiration
+  date (session cookie).
+- Path
+  E.g. "/forum". Optional.
+- Domain
+  E.g. ".example.com". Optional.
+- HttpOnly
+  Set HttpOnly flag. Given as boolean. Optional, defaults to ``true``.
+- Secure
+  Set Secure flag. Given as boolean. Optional, defaults to ``true`` when
+  visited over SSL.
+  
+Example:
+
+```javascript
+app.preprocess('POST /login', function() {
+  var sessionId = '...';
+  var date = new Date();
+  date.setDate(date.getDate() + 14);
+  
+  // Set a session cookie.
+  this.setCookie('sessionId', sessionId);
+  
+  // Expires after 2 weeks.
+  this.setCookie('sessionId', sessionId, date);
+  
+  // Only on /forum.
+  this.setCookie('sessionId', sessionId, null, '/forum');
+  
+  // Set for example.com and all subdomains.
+  this.setCookie('sessionId', sessionId, null, null, '.example.com'); 
+});
+```
+
 ### HTTP headers
 
 HTTP headers can be set using the ``setHeader`` function.

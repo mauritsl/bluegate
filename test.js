@@ -544,4 +544,151 @@ describe.only('BlueGate', function() {
       expect(data[1].secure).to.equal(true);
     });
   });
+
+  it('will not accept newlines in HTTP-headers', function(done) {
+    BlueGate.process('GET /header-injection', function(id) {
+      this.setHeader('Cookie', 'foo=bar\nX-Hacked: true', true);
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /header-injection HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('HTTP/1.1 500 Internal Server Error');
+      expect(data).to.not.contain('foo=bar\nX-Hacked: true');
+      done();
+    });
+  });
+
+  it('can set a cookie with this.setCookie', function(done) {
+    BlueGate.process('GET /set-cookie', function(id) {
+      this.setCookie('foo', 'bar');
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /set-cookie HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('Set-Cookie: foo=bar; HttpOnly\r\n');
+      done();
+    });
+  });
+
+  it('can set a cookie with expire date', function(done) {
+    BlueGate.process('GET /set-cookie/expire', function(id) {
+      var expires = new Date('2020-01-01T00:00:00Z');
+      this.setCookie('foo', 'bar', expires);
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /set-cookie/expire HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('Set-Cookie: foo=bar; Expires=Wed, 01 Jan 2020 00:00:00 GMT; HttpOnly\r\n');
+      done();
+    });
+  });
+
+  it('can set a cookie with path', function(done) {
+    BlueGate.process('GET /set-cookie/path', function(id) {
+      this.setCookie('foo', 'bar', null, '/test');
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /set-cookie/path HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('Set-Cookie: foo=bar; Path=/test; HttpOnly\r\n');
+      done();
+    });
+  });
+
+  it('can set a cookie with domain', function(done) {
+    BlueGate.process('GET /set-cookie/domain', function(id) {
+      this.setCookie('foo', 'bar', null, null, '.example.com');
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /set-cookie/domain HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('Set-Cookie: foo=bar; Domain=.example.com; HttpOnly\r\n');
+      done();
+    });
+  });
+
+  it('can set a cookie with secure flag', function(done) {
+    BlueGate.process('GET /set-cookie/secure', function(id) {
+      this.setCookie('foo', 'bar', null, null, null, true, true);
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /set-cookie/secure HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('Set-Cookie: foo=bar; Secure; HttpOnly\r\n');
+      done();
+    });
+  });
+
+  it('uses secure flag by default when visited over SSL', function(done) {
+    BlueGate.process('GET /set-cookie/secure-default', function(id) {
+      this.setCookie('foo', 'bar');
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /set-cookie/secure-default HTTP/1.0\r\nX-Forwarded-Proto: https\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('Set-Cookie: foo=bar; Secure; HttpOnly\r\n');
+      done();
+    });
+  });
+
+  it('cannot set a cookie with illegal characters', function(done) {
+    BlueGate.process('GET /set-cookie/illegal-chars', function(id) {
+      this.setCookie('foo', 'bar\tbaz');
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /set-cookie/illegal-chars HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('HTTP/1.1 500 Internal Server Error');
+      expect(data).to.not.contain('Set-Cookie: foo=bar\tbaz; Domain=.example.com; HttpOnly\r\n');
+      done();
+    });
+  });
+
+  it('can set cookies without HttpOnly flag when asked for', function(done) {
+    BlueGate.process('GET /set-cookie/no-httponly', function(id) {
+      this.setCookie('foo', 'bar', null, null, null, false);
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /set-cookie/no-httponly HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('Set-Cookie: foo=bar\r\n');
+      done();
+    });
+  });
 });
