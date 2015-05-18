@@ -102,6 +102,23 @@ ip       | string | 127.0.0.1             | yes
 date     | date   |                       | yes
 secure   | bool   | false                 | yes
 
+### Path parameters
+
+Path parameters are passed as function arguments, as shown in the last code
+example. The following types are available:
+
+Type   | Description
+----|---
+string   | Matches all characters except forward slashes ("/")
+alpha    | Alpha characters (a-z A-Z)
+alphanum | Alphanumeric characters (a-z A-Z 0-9)
+int      | Positive integer (1..n). Does not match 0.
+signed   | Signed integer (e.g. -123, 0 or 123)
+unsigned | Unsigned integer (0..n)
+float    | Floats (e.g. -34.3, .3 or 63)
+uuid     | Matches UUID versions 1 to 5
+path     | Matches all characters including forward slashes ("/")
+
 ### Output
 
 Output is provided as return value. This can be provided as strings, buffers
