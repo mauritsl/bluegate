@@ -220,8 +220,8 @@ replacing them.
 
 ```javascript
 app.preprocess('GET /path', function() {
-  this.setHeader('Cookie', 'foo=bar');
-  this.setHeader('Cookie', 'bar=baz');
+  this.setHeader('Cache-Control', 'no-cache', true);
+  this.setHeader('Cache-Control', 'no-store', true);
 });
 ```
 
