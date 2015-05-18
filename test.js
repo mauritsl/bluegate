@@ -691,4 +691,52 @@ describe.only('BlueGate', function() {
       done();
     });
   });
+
+  it('will prevent clickjacking by default for html responses', function(done) {
+    BlueGate.process('GET /no-clickjacking', function(id) {
+      return 'test';
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /no-clickjacking HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('X-Frame-Options: deny');
+      done();
+    });
+  });
+
+  it('will not include X-Frame-Options for non-html responses', function(done) {
+    BlueGate.process('GET /no-clickjacking/non-html', function(id) {
+      return {};
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /no-clickjacking/non-html HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.not.contain('X-Frame-Options: deny');
+      done();
+    });
+  });
+
+  it('will prevent mime sniffing by default', function(done) {
+    BlueGate.process('GET /no-mimesniffing', function(id) {
+      return 'test';
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /no-mimesniffing HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('X-Content-Type-Options: nosniff');
+      done();
+    });
+  });
 });

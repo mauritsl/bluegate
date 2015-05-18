@@ -236,3 +236,34 @@ The ``this.secure`` variable in handles indicates if the client is using HTTPS
 for this request. This flag relies on the ``X-Forwarded-Proto`` header, which
 should be set by reverse proxies (which may require extra configuration).
 This value can be spoofed by the client.
+
+Cookies are set with the Secure flag by default when running behind SSL. It's
+possible to remove it by setting the 7th argument of ``setCookie`` to ``false``.
+
+### Clickjacking
+
+All HTML responses will include the HTTP-header ``X-Frame-Options: deny`` to
+prevent [clickjacking](https://www.owasp.org/index.php/Clickjacking) attacks.
+It is set to the most strict setting by default. You can change its setting in
+the constructor when you use iframes. Strings are used as header value. Use
+``false`` to completely remove this header.
+
+```javascript
+var app = new BlueGate({
+  clickjacking: 'sameorigin'
+});
+```
+
+### MIME-sniffing
+
+All responses will include the header ``X-Content-Type-Options: nosniff`` by
+default. This helps to prevent
+[MIME-sniffing](http://en.wikipedia.org/wiki/Content_sniffing) attacks. You
+should leave this header in and make sure that the MIME-type is set correctly.
+However, you can disable this feature in the constructor.
+
+```javascript
+var app = new BlueGate({
+  noMimeSniffing: false
+});
+```

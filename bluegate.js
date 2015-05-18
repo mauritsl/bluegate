@@ -25,7 +25,9 @@ var BlueGate = function(options) {
   var self = this;
 
   this._options = _.defaults({
-    trustedProxies: ['127.0.0.1']
+    trustedProxies: ['127.0.0.1'],
+    clickjacking: 'deny',
+    noMimeSniffing: true
   }, options);
 
   this._app = connect();
@@ -173,6 +175,7 @@ BlueGate.prototype.generateScope = function(req) {
     date: new Date(),
     secure: false,
     _outputHeaders: {},
+    _options: this._options,
     setHeader: function(name, value, append) {
       if (name.match(/[^ -~]/) || value.match(/[^ -~]/)) {
         throw Error('HTTP-header cannot contain non-printable characters');
@@ -355,6 +358,16 @@ var sendHandler = function() {
   }
 
   this.setHeader('Content-Type', mime);
+
+  // Include anti clickjacking header for HTML responses.
+  if (this._options.clickjacking && mime.substring(0, 9) === 'text/html') {
+    this.setHeader('X-Frame-Options', this._options.clickjacking);
+  }
+
+  // Disable MIME-sniffing. This must be set for all content types.
+  if (this._options.noMimeSniffing) {
+    this.setHeader('X-Content-Type-Options', 'nosniff');
+  }
   Object.keys(this._outputHeaders).forEach(function(name) {
     // Convert case ("content-type" to "Content-Type").
     var casedName = name.replace(/(^.|\-.)/g, function(part) {
