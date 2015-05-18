@@ -164,6 +164,18 @@ BlueGate.prototype.transformPath = function(path) {
 BlueGate.prototype.generateScope = function(req) {
   var self = this;
   var urlParts = url.parse(req.url, true);
+  var getFrom = function(source) {
+    return function(name, type, defaultValue) {
+      if (typeof self._types[type] === 'undefined') {
+        throw Error('Unknown type ' + type);
+      }
+      var pattern = new RegExp(self._types[type], 'i');
+      if (typeof source[name] !== 'undefined' && String(source[name]).match(pattern)) {
+        return self.convertValue(source[name], type);
+      }
+      return typeof defaultValue === 'undefined' ? null : defaultValue;
+    };
+  };
   var scope = {
     // Trim trailing slashes from path.
     path: urlParts.pathname.replace(/(.)\/+$/, '$1'),
@@ -172,18 +184,10 @@ BlueGate.prototype.generateScope = function(req) {
     mime: null,
     status: 200,
     query: Object.keys(urlParts.query),
-    getQuery: function(name, type, defaultValue) {
-      if (typeof self._types[type] === 'undefined') {
-        throw Error('Unknown type ' + type);
-      }
-      var pattern = new RegExp(self._types[type], 'i');
-      if (typeof urlParts.query[name] !== 'undefined' && String(urlParts.query[name]).match(pattern)) {
-        return self.convertValue(urlParts.query[name], type);
-      }
-      return typeof defaultValue === 'undefined' ? null : defaultValue;
-    },
+    getQuery: getFrom(urlParts.query),
     headers: req.headers,
-    cookies: req.cookies,
+    cookies: Object.keys(req.cookies),
+    getCookie: getFrom(req.cookies),
     ip: forwarded(req, req.headers, this._options.trustedProxies).ip,
     date: new Date(),
     secure: false,

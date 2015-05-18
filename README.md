@@ -97,7 +97,7 @@ mime     | string | text/html             | no
 status   | int    | 200                   | no
 query    | object | ['page']              | yes
 headers  | object | {'User-Agent': '...'} | yes
-cookies  | object | {sessionid: '...'}    | yes
+cookies  | object | ['sessionId']         | yes
 ip       | string | 127.0.0.1             | yes
 date     | date   |                       | yes
 secure   | bool   | false                 | yes
@@ -153,6 +153,15 @@ app.process('GET /image', function() {
 ```
 
 ### Cookies
+
+Read cookies using ``getCookie``. This is similar to ``getQuery``. The names of
+all provided cookies can be found in ``this.cookies``.
+
+```javascript
+app.authentication(function() {
+  var sessionId = this.getCookie('sessionId', 'alphanum');
+});
+```
 
 Use the ``setCookie`` function to set a cookie. Arguments are:
 

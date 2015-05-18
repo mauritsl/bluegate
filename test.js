@@ -234,16 +234,33 @@ describe.only('BlueGate', function() {
     });
   });
 
-  it('provides cookies in this.cookies', function() {
-    BlueGate.process('GET /cookie-test', function() {
-      this.output = this.cookies;
+  it('provides cookie names in this.cookies', function() {
+    BlueGate.process('GET /cookie-names', function() {
+      return {
+        value: this.cookies
+      };
     });
     var options = {
-      headers: {'Cookie': 'foo=bar'}
+      headers: {'Cookie': 'foo=34'}
     };
-    return needle.getAsync(url + '/cookie-test', options).then(function(data) {
-      expect(data[1]).to.be.an('object');
-      expect(data[1]).to.have.property('foo', 'bar');
+    return needle.getAsync(url + '/cookie-names', options).then(function(data) {
+      expect(data[1].value).to.deep.equal(['foo']);
+    });
+  });
+
+  it('can get cookie value from this.getCookie', function() {
+    BlueGate.process('GET /cookie-value', function() {
+      return {
+        asInt: this.getCookie('foo', 'int'),
+        asString: this.getCookie('foo', 'string')
+      };
+    });
+    var options = {
+      headers: {'Cookie': 'foo=34'}
+    };
+    return needle.getAsync(url + '/cookie-value', options).then(function(data) {
+      expect(data[1].asInt).to.equal(34);
+      expect(data[1].asString).to.equal('34');
     });
   });
 
