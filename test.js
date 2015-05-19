@@ -10,7 +10,7 @@ var expect = chai.expect;
 var net = require('net');
 var needle = Promise.promisifyAll(require('needle'));
 
-describe.only('BlueGate', function() {
+describe('BlueGate', function() {
   var BlueGate;
   var url = 'http://localhost:3000';
 
