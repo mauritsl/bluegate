@@ -257,6 +257,33 @@ app.process('POST /object', function() {
 });
 ```
 
+## Logging
+
+BlueGate will log requests to console by default. You can change this behaviour
+in the constructor options.
+
+```javascript
+var server = new BlueGate({
+  log: false, // or:
+  log: function(message) { ... }
+});
+```
+
+The format of the log messages is:
+
+```
+2015-05-26T21:15:05 127.0.0.1 "GET /host-test" 200 16 143
+ \- Start of request  |           |            |  |   |
+                      \ Client IP |            |  |   |
+                                  \ Request    |  |   |
+                                 Response code /  |   |
+                           Response size (bytes)  /   |
+                                  Response time (ms)  /
+```
+
+No settings are available to change this format. You can disable logging and
+register an ``after`` / ``aftererror`` handler for custom logging. 
+
 ## Security
 
 ### Running behind a proxy server

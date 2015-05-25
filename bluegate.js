@@ -24,11 +24,12 @@ var _ = require('lodash');
 var BlueGate = function(options) {
   var self = this;
 
-  this._options = _.defaults({
+  this._options = _.defaults(options, {
     trustedProxies: ['127.0.0.1'],
     clickjacking: 'deny',
-    noMimeSniffing: true
-  }, options);
+    noMimeSniffing: true,
+    log: console.log
+  });
 
   this._app = connect();
 
@@ -73,6 +74,12 @@ var BlueGate = function(options) {
   this._send(sendHandler);
   this.error(errorHandler);
   this._senderror(sendHandler);
+
+  var log = this._options.log;
+  if (typeof log === 'function') {
+    this.after(function() { logHandler.apply(this, [log]); });
+    this.aftererror(function() { logHandler.apply(this, [log]); });
+  }
 };
 
 /**
@@ -409,8 +416,20 @@ var sendHandler = function() {
     self.res.setHeader(casedName, self._outputHeaders[name]);
   });
 
+  this._length = this.output.length;
   this.res.statusCode = this.status;
   this.res.end(this.output);
+};
+
+/**
+ * Log response.
+ *
+ * @param {function} log
+ */
+var logHandler = function(log) {
+  var date = this.date.toISOString().substring(0, 19);
+  var duration = new Date() - this.date;
+  log(date + ' ' + this.ip + ' "' + this.method + ' ' + this.path + '" ' + this.status + ' ' + this._length + ' ' + duration);
 };
 
 /**

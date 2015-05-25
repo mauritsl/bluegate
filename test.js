@@ -10,7 +10,14 @@ var expect = chai.expect;
 var net = require('net');
 var needle = Promise.promisifyAll(require('needle'));
 
+var lastLog;
+var log = function(message) {
+  lastLog = message;
+};
+
 describe('BlueGate', function() {
+  var BlueGateModule = require('./bluegate.js');
+
   var BlueGate;
   var url = 'http://localhost:3000';
 
@@ -22,7 +29,9 @@ describe('BlueGate', function() {
   };
 
   before(function() {
-    BlueGate = new (require('./bluegate.js'));
+    BlueGate = new BlueGateModule({
+      log: log
+    });
     return BlueGate.listen(3000);
   });
 
@@ -31,7 +40,9 @@ describe('BlueGate', function() {
   });
 
   it('cannot start without port number', function() {
-    var server = new (require('./bluegate.js'));
+    var server = new BlueGateModule({
+      log: log
+    });
     expect(function() {
       server.listen();
     }).to.throw(Error);
@@ -827,5 +838,9 @@ describe('BlueGate', function() {
       expect(data).to.not.contain('!!fooled');
       done();
     });
+  });
+
+  it('will log requests', function() {
+    expect(lastLog).to.match(/^20[0-9]{2}\-[0-9]{2}\-[0-9]{2}T[012][0-9]\:[0-9]{2}\:[0-9]{2} [0-9a-f\.\:]+ "[^"]+" [0-9]{3} [0-9]+ [0-9]+$/im);
   });
 });
