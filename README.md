@@ -90,6 +90,7 @@ The table below lists all available variables.
 
 Name     | Type   | Example               | Read only?
 ---------|--------|-----------------------|-----------
+host     | string | www.example.com       | yes
 path     | string | /user/john            | yes
 method   | string | GET                   | yes
 body     | buffer |                       | yes

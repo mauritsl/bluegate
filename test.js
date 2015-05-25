@@ -796,4 +796,36 @@ describe('BlueGate', function() {
       done();
     });
   });
+
+  it('will include hostname in this.host', function(done) {
+    BlueGate.process('GET /host-test', function(id) {
+      return this.host;
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /host-test HTTP/1.0\r\nHost: test.example.com\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('test.example.com');
+      done();
+    });
+  });
+
+  it('will not include hostname in this.host when host is invalid', function(done) {
+    BlueGate.process('GET /host-test', function(id) {
+      return this.host;
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /host-test HTTP/1.0\r\nHost: !!fooled\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.not.contain('!!fooled');
+      done();
+    });
+  });
 });

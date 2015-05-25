@@ -176,7 +176,9 @@ BlueGate.prototype.generateScope = function(req) {
       return typeof defaultValue === 'undefined' ? null : defaultValue;
     };
   };
+  var host = typeof req.headers.host === 'string' && req.headers.host.match(/^[a-z0-9\-\.]+$/im) ? req.headers.host : '';
   var scope = {
+    host: host,
     // Trim trailing slashes from path.
     path: urlParts.pathname.replace(/(.)\/+$/, '$1'),
     method: req.method,
