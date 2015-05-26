@@ -396,6 +396,14 @@ describe('BlueGate', function() {
     });
   });
 
+  it('can accept 1 as int in params', function() {
+    // Use the callback from last case.
+    return needle.getAsync(url + '/node/by-int/1').then(function(data) {
+      expect(data[1].value).to.be.a('number');
+      expect(data[1].value).to.equal(1);
+    });
+  });
+
   it('can accept unsigned params', function() {
     BlueGate.process('GET /node/by-unsigned/<id:unsigned>', function(id) {
       // Wrap value in an object, so it will use JSON encoding.

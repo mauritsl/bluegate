@@ -63,7 +63,7 @@ var BlueGate = function(options) {
     'string': '[^\\/]+',
     'alpha': '[a-z]+',
     'alphanum': '[a-z0-9]+',
-    'int': '[1-9][0-9]+',
+    'int': '[1-9][0-9]*',
     'signed': '\\-?[0-9]+',
     'unsigned': '[0-9]+',
     'float': '\\-?[0-9\\.]+',
