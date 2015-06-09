@@ -277,6 +277,7 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
         delete scope.res;
       }
       return Promise.resolve(callbacks).bind(scope)[iterator](function(callback) {
+        this.parameters = callback.params;
         var args = [];
         callback.arguments.forEach(function(name) {
           args.push(callback.params[name]);

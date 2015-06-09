@@ -552,6 +552,16 @@ describe('BlueGate', function() {
     });
   });
 
+  it('will duplicate params in scope.parameters', function() {
+    BlueGate.process('GET /parameters-scope-test/<title:string>', function() {
+      return this.parameters;
+    });
+    return needle.getAsync(url + '/parameters-scope-test/LoremIpsum').then(function(data) {
+      expect(data[1]).to.be.an('object');
+      expect(data[1]).to.have.property('title', 'LoremIpsum');
+    });
+  });
+
   it('can add HTTP headers', function(done) {
     BlueGate.process('GET /set-header', function(id) {
       this.setHeader('X-Generator', 'Test');

@@ -88,20 +88,21 @@ app.process('GET /user/<name:string>', function(type, name) {
 Other input is available in the local scope, accessible with ``this.*``.
 The table below lists all available variables.
 
-Name     | Type   | Example               | Read only?
----------|--------|-----------------------|-----------
-host     | string | www.example.com       | yes
-path     | string | /user/john            | yes
-method   | string | GET                   | yes
-body     | buffer |                       | yes
-mime     | string | text/html             | no
-status   | int    | 200                   | no
-query    | object | ['page']              | yes
-headers  | object | {'User-Agent': '...'} | yes
-cookies  | object | ['sessionId']         | yes
-ip       | string | 127.0.0.1             | yes
-date     | date   |                       | yes
-secure   | bool   | false                 | yes
+Name       | Type   | Example               | Read only?
+-----------|--------|-----------------------|-----------
+host       | string | www.example.com       | yes
+path       | string | /user/john            | yes
+method     | string | GET                   | yes
+body       | buffer |                       | yes
+mime       | string | text/html             | no
+status     | int    | 200                   | no
+query      | object | ['page']              | yes
+headers    | object | {'User-Agent': '...'} | yes
+cookies    | object | ['sessionId']         | yes
+ip         | string | 127.0.0.1             | yes
+date       | date   |                       | yes
+secure     | bool   | false                 | yes
+parameters | object | {...}                 | yes
 
 ### Path parameters
 
@@ -119,6 +120,10 @@ unsigned | Unsigned integer (0..n)
 float    | Floats (e.g. -34.3, .3 or 63)
 uuid     | Matches UUID versions 1 to 5
 path     | Matches all characters including forward slashes ("/")
+
+Accepting path parameters via function arguments should be preferred above using
+``this.parameters``. The last object was added to allow abstract functions to
+handle multiple callbacks.
 
 ### Query arguments
 
