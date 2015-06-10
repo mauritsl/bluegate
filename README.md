@@ -25,7 +25,7 @@ var BlueGate = require('bluegate');
 var app = new BlueGate();
 app.listen(8080);
 
-app.validate('GET /user/<id:int>', function(id) {
+app.postvalidation('GET /user/<id:int>', function(id) {
   if (id === 123) {
     throw Error('This is not a valid user id');
   }
