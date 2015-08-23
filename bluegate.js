@@ -24,6 +24,9 @@ var _ = require('lodash');
 var BlueGate = function(options) {
   var self = this;
 
+  if (typeof options !== 'object') {
+    options = {};
+  }
   this._options = _.defaults(options, {
     trustedProxies: ['127.0.0.1'],
     clickjacking: 'deny',

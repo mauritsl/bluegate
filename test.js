@@ -48,6 +48,13 @@ describe('BlueGate', function() {
     }).to.throw(Error);
   });
 
+  it('can start without providing options', function() {
+    var server = new BlueGateModule();
+    return server.listen(3001).then(function() {
+      return server.close();
+    });
+  });
+
   it('can register new handler', function() {
     BlueGate.process('GET /url-test', function() {
       return this.path;
