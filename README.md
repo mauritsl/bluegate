@@ -343,3 +343,15 @@ var app = new BlueGate({
   noMimeSniffing: false
 });
 ```
+
+### Maximum input size
+
+A ``maxInputSize`` option is available. This limits the number of bytes
+accepted in the request body. The default value is 1048576 (1MB). You should
+lower this value if large requests aren't used to avoid DoS attacks.
+
+```javascript
+var app = new BlueGate({
+  maxInputSize: 1024 * 64 // 64 KB
+});
+```

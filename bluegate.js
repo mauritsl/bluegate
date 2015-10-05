@@ -31,13 +31,14 @@ var BlueGate = function(options) {
     trustedProxies: ['127.0.0.1'],
     clickjacking: 'deny',
     noMimeSniffing: true,
-    log: console.log
+    log: console.log,
+    maxInputSize: 1024 * 1024
   });
 
   this._app = connect();
 
   this._app.use(bodyParser.urlencoded({extended: false}));
-  this._app.use(bodyParser.json());
+  this._app.use(bodyParser.json({limit: this._options.maxInputSize}));
   this._app.use(bodyParser.text({type: 'text/*'}));
   this._app.use(bodyParser.raw());
   this._app.use(cookieParser());
