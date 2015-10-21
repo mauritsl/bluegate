@@ -153,12 +153,14 @@ describe('BlueGate', function() {
     BlueGate.process('GET /query-value', function() {
       return {
         asInt: this.getQuery('test', 'int'),
-        asString: this.getQuery('test', 'string')
+        asString: this.getQuery('test', 'string'),
+        asBool: this.getQuery('test', 'bool')
       };
     });
-    return needle.getAsync(url + '/query-value?test=34').then(function(data) {
-      expect(data[1].asInt).to.equal(34);
-      expect(data[1].asString).to.equal('34');
+    return needle.getAsync(url + '/query-value?test=1').then(function(data) {
+      expect(data[1].asInt).to.equal(1);
+      expect(data[1].asString).to.equal('1');
+      expect(data[1].asBool).to.equal(true);
     });
   });
 

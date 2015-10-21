@@ -66,15 +66,16 @@ var BlueGate = function(options) {
   this.addRegisterFunctions(this);
 
   this._types = {
-    'string': '[^\\/]+',
     'alpha': '[a-z]+',
     'alphanum': '[a-z0-9]+',
-    'int': '[1-9][0-9]*',
-    'signed': '\\-?[0-9]+',
-    'unsigned': '[0-9]+',
+    'bool': '(?:1|0|true|false)',
     'float': '\\-?[0-9\\.]+',
-    'uuid': '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
-    'path': '.+?'
+    'int': '[1-9][0-9]*',
+    'path': '.+?',
+    'signed': '\\-?[0-9]+',
+    'string': '[^\\/]+',
+    'unsigned': '[0-9]+',
+    'uuid': '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
   };
 
   this._send(sendHandler);
@@ -322,9 +323,12 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
  * @return {mixed}
  */
 BlueGate.prototype.convertValue = function(value, type) {
-  // Numeric types are casted to a number, others are passed as strings.
+  // Numeric types are casted to a number, bool as bool and others are passed as strings.
   if (['int', 'signed', 'unsigned', 'float'].indexOf(type) >= 0) {
     value = parseFloat(value);
+  }
+  if (type === 'bool') {
+    value = value === '1' || value === 'true';
   }
   if (type === 'uuid') {
     // Uuid's are always passed in lowercase for consistency.

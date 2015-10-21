@@ -111,15 +111,16 @@ example. The following types are available:
 
 Type     | Description
 ---------|--------------------------------------------------------
-string   | Matches all characters except forward slashes ("/")
 alpha    | Alpha characters (a-z A-Z)
 alphanum | Alphanumeric characters (a-z A-Z 0-9)
-int      | Positive integer (1..n). Does not match 0.
-signed   | Signed integer (e.g. -123, 0 or 123)
-unsigned | Unsigned integer (0..n)
+bool     | Boolean (matches "1", "0", "true" and "false")
 float    | Floats (e.g. -34.3, .3 or 63)
-uuid     | Matches UUID versions 1 to 5
+int      | Positive integer (1..n). Does not match 0.
 path     | Matches all characters including forward slashes ("/")
+signed   | Signed integer (e.g. -123, 0 or 123)
+string   | Matches all characters except forward slashes ("/")
+unsigned | Unsigned integer (0..n)
+uuid     | Matches UUID versions 1 to 5
 
 Accepting path parameters via function arguments should be preferred above using
 ``this.parameters``. The last object was added to allow abstract functions to
