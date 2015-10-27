@@ -571,6 +571,31 @@ describe('BlueGate', function() {
     });
   });
 
+  it('can set extra parameter in callback', function() {
+    BlueGate.initialize('GET /extra-params', function() {
+      this.setParameter('foo', 'bar');
+    });
+    BlueGate.process('GET /extra-params', function(foo) {
+      return {value: foo};
+    });
+    return needle.getAsync(url + '/extra-params').then(function(data) {
+      expect(data[1].value).to.equal('bar');
+    });
+  });
+
+  it('will override existing parameters in setParameter', function() {
+    BlueGate.initialize('GET /extra-params/<foo:string>', function(foo) {
+      this.setParameter('foo', 'bar');
+    });
+    BlueGate.process('GET /extra-params/<foo:string>', function(foo) {
+      return {value: foo};
+    });
+    return needle.getAsync(url + '/extra-params/baz').then(function(data) {
+      expect(data[1].value).to.equal('bar');
+    });
+  });
+
+
   it('can add HTTP headers', function(done) {
     BlueGate.process('GET /set-header', function(id) {
       this.setHeader('X-Generator', 'Test');

@@ -247,6 +247,12 @@ BlueGate.prototype.generateScope = function(req) {
         parts.push('HttpOnly');
       }
       this.setHeader('Set-Cookie', parts.join('; '), true);
+    },
+    extraParameters: {},
+    setParameter: function(name, value) {
+      // These parameters aren't stored separately (not in this.parameters)
+      // because they are not transformed to the defined type.
+      this.extraParameters[name] = value;
     }
   };
   if (scope.headers['x-forwarded-proto'] === 'https' || scope.headers['x-forwarded-proto'] === '"https"') {
@@ -261,8 +267,8 @@ BlueGate.prototype.generateScope = function(req) {
  *
  * @private
  * @method handleReques
- * @param {object} req Request objec
- * @param {object} res Response objec
+ * @param {object} req Request object
+ * @param {object} res Response object
  * @param {function} next Next middleware callback
  */
 BlueGate.prototype.handleRequest = function(req, res, next) {
@@ -286,8 +292,14 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
       return Promise.resolve(callbacks).bind(scope)[iterator](function(callback) {
         this.parameters = callback.params;
         var args = [];
+        var scope = this;
         callback.arguments.forEach(function(name) {
-          args.push(callback.params[name]);
+          var value = callback.params[name];
+          // Extra parameters are set using scope.setParameter, and override the path parameters.
+          if (typeof scope.extraParameters[name] !== 'undefined') {
+            value = scope.extraParameters[name];
+          }
+          args.push(value);
         });
         var result = callback.callback.apply(this, args);
         return Promise.resolve(result).then(function(output) {

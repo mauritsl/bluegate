@@ -126,6 +126,21 @@ Accepting path parameters via function arguments should be preferred above using
 ``this.parameters``. The last object was added to allow abstract functions to
 handle multiple callbacks.
 
+It is possible to set new parameters or override existing using ``setParameter``
+inside a handler. This is illustrated in the following example:
+
+```javascript
+app.initialize('GET /path/<foo:string>', function(foo) {
+  this.setParameter('foo', 'bar');
+});
+app.process('GET /path/<foo:string>', function(foo) {
+  // foo == "bar", independent from the actual path argument.
+});
+```
+
+The ``setParameter`` function requires two arguments; name and value. The value
+is *not* casted to the type defined in the path.
+
 ### Query arguments
 
 Values from the path query ("/news?page=34") can be retreived using
