@@ -554,8 +554,26 @@ describe('BlueGate', function() {
     });
   });
 
+  it('will decode parameters', function() {
+    BlueGate.process('GET /decode-path/<url:string>', function(url) {
+      return {
+        url: url
+      };
+    });
+    return needle.getAsync(url + '/decode-path/http%3A%2F%2Fexample.com%2F').then(function(data) {
+      expect(data[1].url).to.equal('http://example.com/');
+    });
+  });
+
+  it('will reject illegal encoded parameters', function() {
+    // Use callback from last test.
+    // Note that the last "F" is missing (%2 instead of %2F).
+    return needle.getAsync(url + '/decode-path/http%3A%2F%2Fexample.com%2').then(function(data) {
+      expect(data[0].statusCode).to.equal(404);
+    });
+  });
+
   it('will not include trailing slashes in path params', function() {
-    // Use the callback from last case.
     return needle.getAsync(url + '/node/by-path/trailing/slash/').then(function(data) {
       expect(data[1].value).to.equal('trailing/slash');
     });

@@ -369,8 +369,16 @@ BlueGate.prototype.getCallbacks = function(phase, method, path, scope) {
     if (match) {
       var params = {};
       for (var i = 0; i < item.params.length; ++i) {
-        var value = self.convertValue(match[i + 1], item.params[i].type);
-        params[item.params[i].name] = value;
+        try {
+          var value = decodeURIComponent(match[i + 1]);
+          value = self.convertValue(value, item.params[i].type);
+          params[item.params[i].name] = value;
+        }
+        catch (error) {
+          // Catch URI malformed error from decodeURIComponent.
+          // Does not meet type requirements, so will result in a 404.
+          return null;
+        }
       }
       callbacks.push({
         callback: item.callback,
