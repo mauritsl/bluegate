@@ -100,9 +100,6 @@ describe('BlueGate', function() {
 
   it('will pass non-JSON input as buffer', function() {
     BlueGate.process('POST /json-post', function() {
-      console.log(this.headers);
-      console.log(typeof this.body);
-      console.log(this.body);
       return this.body;
     });
     var input = new Buffer('test');
@@ -113,7 +110,6 @@ describe('BlueGate', function() {
     };
     return needle.postAsync(url + '/json-post', input, options).then(function(data) {
       var body = data[1];
-      console.log(body);
       expect(body.toString()).to.equal(input.toString());
     });
   });
