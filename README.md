@@ -88,21 +88,23 @@ app.process('GET /user/<name:string>', function(type, name) {
 Other input is available in the local scope, accessible with ``this.*``.
 The table below lists all available variables.
 
-Name       | Type   | Example               | Read only?
------------|--------|-----------------------|-----------
-host       | string | www.example.com       | yes
-path       | string | /user/john            | yes
-method     | string | GET                   | yes
-body       | buffer |                       | yes
-mime       | string | text/html             | no
-status     | int    | 200                   | no
-query      | object | ['page']              | yes
-headers    | object | {'User-Agent': '...'} | yes
-cookies    | object | ['sessionId']         | yes
-ip         | string | 127.0.0.1             | yes
-date       | date   |                       | yes
-secure     | bool   | false                 | yes
-parameters | object | {...}                 | yes
+Name       | Type    | Example               | Read only?
+-----------|---------|-----------------------|-----------
+host       | string  | www.example.com       | yes
+path       | string  | /user/john            | yes
+method     | string  | GET                   | yes
+body       | buffer* |                       | yes
+mime       | string  | text/html             | no
+status     | int     | 200                   | no
+query      | object  | ['page']              | yes
+headers    | object  | {'User-Agent': '...'} | yes
+cookies    | object  | ['sessionId']         | yes
+ip         | string  | 127.0.0.1             | yes
+date       | date    |                       | yes
+secure     | bool    | false                 | yes
+parameters | object  | {...}                 | yes
+
+* Body is an object for JSON and urlencoded input.
 
 ### Path parameters
 

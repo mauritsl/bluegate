@@ -85,6 +85,39 @@ describe('BlueGate', function() {
     });
   });
 
+  it('will parse JSON input', function() {
+    BlueGate.process('POST /json-post', function() {
+      return this.body;
+    });
+    var input = {foo: 'bar'};
+    var options = {json: true};
+    return needle.postAsync(url + '/json-post', input, options).then(function(data) {
+      var body = data[1];
+      expect(body).to.be.an('object');
+      expect(body).to.deep.equal(input);
+    });
+  });
+
+  it('will pass non-JSON input as buffer', function() {
+    BlueGate.process('POST /json-post', function() {
+      console.log(this.headers);
+      console.log(typeof this.body);
+      console.log(this.body);
+      return this.body;
+    });
+    var input = new Buffer('test');
+    var options = {
+      headers: {
+        'Content-Type': 'application/foo'
+      }
+    };
+    return needle.postAsync(url + '/json-post', input, options).then(function(data) {
+      var body = data[1];
+      console.log(body);
+      expect(body.toString()).to.equal(input.toString());
+    });
+  });
+
   [
     {name: 'initialize', status: 500, message: 'Internal server error'},
     {name: 'authentication', status: 401, message: 'Authentication required'},

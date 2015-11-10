@@ -40,7 +40,7 @@ var BlueGate = function(options) {
   this._app.use(bodyParser.urlencoded({extended: false}));
   this._app.use(bodyParser.json({limit: this._options.maxInputSize}));
   this._app.use(bodyParser.text({type: 'text/*'}));
-  this._app.use(bodyParser.raw());
+  this._app.use(bodyParser.raw({type: '*/*'}));
   this._app.use(cookieParser());
   this._app.use(compression());
 
