@@ -162,17 +162,18 @@ contains a list of names only, to enforce validation when getting the value.
 
 ### Output
 
-Output is provided as return value. This can be provided as strings, buffers
-or any JSON serializable value. The MIME-type defaults to "text/html" when
-using strings, "application/octet-stream" for buffers and "application/json"
-for other types. JSON output is automatically encoded.
+Output is provided as return value. This can be provided as strings, buffer,
+readable stream or any JSON serializable value. The MIME-type defaults to
+"text/html" when using strings, "application/octet-stream" for buffers and
+stream and "application/json" for other types. JSON output is automatically
+encoded.
 
 Use ``this.mime`` to set a different MIME-type.
 
 ```javascript
 app.process('GET /image', function() {
   this.mime = 'image/jpeg';
-  return new Buffer('...');
+  return fs.createReadStream('image.jpg');
 });
 ```
 

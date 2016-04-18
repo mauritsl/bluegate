@@ -16,6 +16,7 @@ var url = require('url');
 var retrieveArguments = require('retrieve-arguments');
 var forwarded = require('forwarded-for');
 var _ = require('lodash');
+var Readable = require('stream').Readable;
 
 /**
  * Create a new webserver.
@@ -416,6 +417,9 @@ var sendHandler = function() {
   else if (this.output instanceof Buffer) {
     mime = 'application/octet-stream';
   }
+  else if (this.output instanceof Readable) {
+    mime = 'application/octet-stream';
+  }
   else {
     mime = 'application/json';
     this.output = JSON.stringify(this.output, null, 2);
@@ -449,7 +453,18 @@ var sendHandler = function() {
 
   this._length = this.output.length;
   this.res.statusCode = this.status;
-  this.res.end(this.output);
+  if (this.output instanceof Readable) {
+    var res = this.res;
+    this.output.on('data', function(data) {
+      res.write(data);
+    });
+    this.output.on('end', function() {
+      res.end();
+    });
+  }
+  else {
+    this.res.end(this.output);
+  }
 };
 
 /**

@@ -9,6 +9,8 @@ var expect = chai.expect;
 
 var net = require('net');
 var needle = Promise.promisifyAll(require('needle'));
+var Readable = require('stream').Readable;
+var util = require('util');
 
 var lastLog;
 var log = function(message) {
@@ -941,5 +943,29 @@ describe('BlueGate', function() {
 
   it('will log requests', function() {
     expect(lastLog).to.match(/^20[0-9]{2}\-[0-9]{2}\-[0-9]{2}T[012][0-9]\:[0-9]{2}\:[0-9]{2} [0-9a-f\.\:]+ "[^"]+" [0-9]{3} [0-9]+ [0-9]+$/im);
+  });
+
+  it('can handle streams as process result', function(done) {
+    BlueGate.process('GET /stream-test', function() {
+      var TestStream = function(options) {
+        Readable.call(this, options);
+        this.counter = 0;
+      };
+      util.inherits(TestStream, Readable);
+      TestStream.prototype._read = function() {
+        this.push(++this.counter > 1 ? null : 'Lorem ipsum');
+      };
+      return new TestStream();
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("GET /stream-test HTTP/1.0\r\nConnection: Close\r\n\r\n");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(data).to.contain('Lorem ipsum');
+      done();
+    });
   });
 });
