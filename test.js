@@ -8,7 +8,7 @@ chai.use(chaiAsPromised);
 var expect = chai.expect;
 
 var net = require('net');
-var needle = Promise.promisifyAll(require('needle'));
+var needle = Promise.promisifyAll(require('needle'), {multiArgs: true});
 var Readable = require('stream').Readable;
 var util = require('util');
 

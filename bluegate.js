@@ -101,7 +101,7 @@ BlueGate.prototype.listen = function(port) {
   });
 
   this.server = http.createServer(this._app);
-  return Promise.promisify(this.server.listen, this.server)(port);
+  return Promise.promisify(this.server.listen, {context: this.server})(port);
 };
 
 /**
@@ -414,7 +414,7 @@ BlueGate.prototype.getCallbacks = function(phase, method, path, scope) {
  * @method close
  */
 BlueGate.prototype.close = function() {
-  return Promise.promisify(this.server.close, this.server)();
+  return Promise.promisify(this.server.close, {context: this.server})();
 };
 
 /**
