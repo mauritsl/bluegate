@@ -45,7 +45,7 @@
     "retrieve-arguments": "^1.0.1"
   },
   "devDependencies": {
-    "blanket": "^1.1.6",
+    "blanket": "1.1.9",
     "chai": "^2.3.0",
     "chai-as-promised": "^5.0.0",
     "eslint": "^0.21.0",
