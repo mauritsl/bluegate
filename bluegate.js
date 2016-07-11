@@ -23,8 +23,6 @@ var Readable = require('stream').Readable;
  * @constructor
  */
 var BlueGate = function(options) {
-  var self = this;
-
   if (typeof options !== 'object') {
     options = {};
   }
@@ -44,10 +42,6 @@ var BlueGate = function(options) {
   this._app.use(bodyParser.raw({type: '*/*'}));
   this._app.use(cookieParser());
   this._app.use(compression());
-
-  this._app.use(function(req, res, next) {
-    return self.handleRequest(req, res, next);
-  });
 
   this.phases = [
     {name: 'initialize', concurrent: true, error: false, errorStatus: 500},
@@ -100,6 +94,12 @@ BlueGate.prototype.listen = function(port) {
   if (typeof port !== 'number') {
     throw Error('Missing port number');
   }
+
+  var self = this;
+  this._app.use(function(req, res, next) {
+    return self.handleRequest(req, res, next);
+  });
+
   this.server = http.createServer(this._app);
   return Promise.promisify(this.server.listen, this.server)(port);
 };
@@ -134,6 +134,19 @@ BlueGate.prototype.addRegisterFunctions = function(scope) {
       });
     };
   });
+};
+
+/**
+ * Use Connect/Express middleware.
+ *
+ * @method use
+ * @param {function} callback
+ */
+BlueGate.prototype.use = function(callback) {
+  if (typeof this.server !== 'undefined') {
+    throw Error('Cannot register middleware after starting application.');
+  }
+  this._app.use(callback);
 };
 
 /**

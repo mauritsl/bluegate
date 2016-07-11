@@ -968,4 +968,43 @@ describe('BlueGate', function() {
       done();
     });
   });
+
+  it('can use Express middleware', function() {
+    var app = new BlueGateModule({log: log});
+    app.use(function(req, res, next) {
+      var parts = require('url').parse(req.url, true);
+      if (typeof parts.query.redirect !== 'undefined') {
+        res.statusCode = 302;
+        res.setHeader('Location', '/');
+        res.end();
+      }
+      else {
+        next();
+      }
+    });
+    app.process('GET /test', function() {
+      return {};
+    });
+    return app.listen(3001).then(function() {
+      return needle.getAsync('http://localhost:3001/test?redirect=1');
+    }).then(function(data) {
+      expect(data[0].statusCode).to.equal(302);
+      return needle.getAsync('http://localhost:3001/test');
+    }).then(function(data) {
+      expect(data[0].statusCode).to.equal(200);
+      return app.close();
+    });
+  });
+
+  it('cannot set Express middleware after starting application', function() {
+    var app = new BlueGateModule({log: log});
+    var use = function() {
+      app.use(function(req, res, next) { /* ... */ });
+    };
+    return app.listen(3001).then(function() {
+      expect(use).to.throw(Error);
+    }).then(function() {
+      return app.close();
+    });
+  });
 });
