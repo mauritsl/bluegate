@@ -92,7 +92,6 @@ var BlueGate = function(options) {
  */
 BlueGate.prototype.listen = function(port) {
   if (typeof port !== 'number' && (typeof port !== 'string' || port.match(/^\/.+/m) === null)) {
-    console.log(port);
     throw Error('Missing port number');
   }
 
