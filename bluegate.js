@@ -88,10 +88,11 @@ var BlueGate = function(options) {
  * Listen for clients.
  *
  * @method listen
- * @param {int} port
+ * @param {mixed} port (integer) or unix socket (string)
  */
 BlueGate.prototype.listen = function(port) {
-  if (typeof port !== 'number') {
+  if (typeof port !== 'number' && (typeof port !== 'string' || port.match(/^\/.+/m) === null)) {
+    console.log(port);
     throw Error('Missing port number');
   }
 

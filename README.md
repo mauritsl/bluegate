@@ -23,7 +23,7 @@ Install using ``npm install bluegate``
 var BlueGate = require('bluegate');
 
 var app = new BlueGate();
-app.listen(8080);
+app.listen(8080); // Port or unix socket.
 
 app.postvalidation('GET /user/<id:int>', function(id) {
   if (id === 123) {
@@ -207,7 +207,7 @@ Use the ``setCookie`` function to set a cookie. Arguments are:
 - Secure
   Set Secure flag. Given as boolean. Optional, defaults to ``true`` when
   visited over SSL.
-  
+
 Example:
 
 ```javascript
@@ -215,18 +215,18 @@ app.preprocess('POST /login', function() {
   var sessionId = '...';
   var date = new Date();
   date.setDate(date.getDate() + 14);
-  
+
   // Set a session cookie.
   this.setCookie('sessionId', sessionId);
-  
+
   // Expires after 2 weeks.
   this.setCookie('sessionId', sessionId, date);
-  
+
   // Only on /forum.
   this.setCookie('sessionId', sessionId, null, '/forum');
-  
+
   // Set for example.com and all subdomains.
-  this.setCookie('sessionId', sessionId, null, null, '.example.com'); 
+  this.setCookie('sessionId', sessionId, null, null, '.example.com');
 });
 ```
 
@@ -306,7 +306,7 @@ The format of the log messages is:
 ```
 
 No settings are available to change this format. You can disable logging and
-register an ``after`` / ``aftererror`` handler for custom logging. 
+register an ``after`` / ``aftererror`` handler for custom logging.
 
 ## Security
 

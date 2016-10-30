@@ -1007,4 +1007,26 @@ describe('BlueGate', function() {
       return app.close();
     });
   });
+
+  it('can listen on unix socket', function(done) {
+    var app = new BlueGateModule({log: log});
+    var path = '/tmp/bluegate-test.sock';
+    app.listen(path).then(function() {
+      var netOptions = {
+        path: path,
+        allowHalfOpen: true
+      };
+      var socket = net.connect(netOptions);
+      var data = '';
+      socket.on('connect', function() {
+        socket.end("GET / HTTP/1.0\r\nConnection: Close\r\n\r\n");
+      }).on('data', function(chunk) {
+        data += chunk.toString();
+      }).on('close', function() {
+        app.close();
+        expect(data).to.contain('404 Not Found');
+        done();
+      });
+    });
+  });
 });
