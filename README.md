@@ -4,6 +4,7 @@ Minimalistic Web Application Framework as Promised
 [![Build Status](https://travis-ci.org/mauritsl/bluegate.svg?branch=master)](https://travis-ci.org/mauritsl/bluegate)
 [![Coverage Status](https://coveralls.io/repos/mauritsl/bluegate/badge.svg?branch=master)](https://coveralls.io/r/mauritsl/bluegate?branch=master)
 [![Dependency Status](https://david-dm.org/mauritsl/bluegate.svg)](https://david-dm.org/mauritsl/bluegate)
+[![Known Vulnerabilities](https://snyk.io/test/github/mauritsl/bluegate/badge.svg)](https://snyk.io/test/github/mauritsl/bluegate)
 
 BlueGate is a simple framework to build web applications in NodeJS.
 It is build on top of the powerful
