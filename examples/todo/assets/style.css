@@ -1,0 +1,17 @@
+
+.ready-link {
+  display: block;
+  float: right;
+}
+
+.add-button {
+  width: 100%;
+}
+
+.clear-completed {
+  float: right;
+}
+
+.items .callout {
+  margin: 0 0 2px 0;
+}

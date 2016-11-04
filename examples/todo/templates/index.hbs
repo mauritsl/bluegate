@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Todo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.4/foundation-flex.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="/assets/style.css" />
+</head>
+<body>
+  <div class="row">
+    <div class="small-12 columns">
+      <h1>Todo's</h1>
+    </div>
+  </div>
+
+  {{# if messages }}
+  <div class="row">
+    <div class="columns">
+      {{#each messages}}
+        <div class="callout alert">{{this}}</div>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  <form action="/" method="post">
+    <input type="hidden" name="token" value="{{token}}" />
+    <div class="row">
+      <div class="small-8 medium-10 columns">
+        <input type="text" name="text" value="" />
+      </div>
+      <div class="columns">
+        <input type="submit" class="button add-button" value="Add" />
+      </div>
+    </div>
+  </form>
+
+  <div class="row">
+    <div class="small-12 columns">
+      <ul class="tabs">
+        {{#tabs}}
+          {{#if active}}
+            <li class="tabs-title is-active"><a href="{{link}}" aria-selected="true">{{label}} ({{count}})</a></li>
+          {{else}}
+            <li class="tabs-title"><a href="{{link}}">{{label}} ({{count}})</a></li>
+          {{/if}}
+        {{/tabs}}
+      </ul>
+     </div>
+   </div>
+   <div class="row items">
+    {{#items}}
+    <div class="small-12 columns">
+      <div class="callout">
+        <a href="{{readyLink}}" class="ready-link">
+          {{#if completed }}
+            <i class="fa fa-check-square-o"></i>
+          {{else}}
+            <i class="fa fa-square-o"></i>
+          {{/if}}
+        </a>
+        <div class="text">{{text}}</div>
+      </div>
+    </div>
+    {{/items}}
+  </div>
+
+  {{#if clearCompletedLink }}
+  <div class="row">
+    <div class="columns">
+      <a href="{{clearCompletedLink}}" class="clear-completed button secondary">Clear completed</a>
+    </div>
+  </div>
+  {{/if}}
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+  <script src="/assets/scripts.js"></script>
+</body>
+</html>

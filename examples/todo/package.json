@@ -1,0 +1,36 @@
+{
+  "name": "todo",
+  "version": "1.0.0",
+  "description": "Example application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "MIT",
+  "xo": {
+    "esnext": true,
+    "space": 2,
+    "rules": {
+      "space-before-function-paren": [
+        "error",
+        "never"
+      ]
+    },
+    "ignores": [
+      "assets/**/*"
+    ]
+  },
+  "dependencies": {
+    "bluegate": "^1.1.13",
+    "bluegate-class": "^1.0.0",
+    "bluegate-handlebars": "^1.0.0",
+    "bluegate-session": "^1.0.1",
+    "bluegate-static": "^1.0.0",
+    "lodash": "^4.16.6",
+    "rc": "^1.1.6",
+    "uuid": "^2.0.3"
+  },
+  "devDependencies": {
+    "xo": "^0.17.0"
+  }
+}
