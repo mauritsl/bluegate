@@ -8,7 +8,7 @@ const IndexRoute = require('./index');
  * @Route("POST /", list="all", template="index")
  * @Route("POST /list/<list:string>", template="index")
  * @Post("text", type="string")
- * @Post("token", type="string")
+ * @Csrf(true)
  */
 class AddRoute extends IndexRoute {
   /**
@@ -28,21 +28,12 @@ class AddRoute extends IndexRoute {
   }
 
   /**
-   * Validate CSRF token.
-   */
-  prevalidation(token, csrfToken) {
-    if (token !== csrfToken) {
-      throw new Error('Invalid CSRF token');
-    }
-  }
-
-  /**
    * Process form.
    */
-  process(list, text, session, csrfToken) {
+  process(list, text, session) {
     if (text.length === 0) {
       session.set('messages', ['Please type some text to add a todo.']);
-      return super.process(list, session, csrfToken);
+      return super.process(list, session);
     }
     const items = session.get('items', []);
     items.push({

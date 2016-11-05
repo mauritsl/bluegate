@@ -3,8 +3,9 @@
 const _ = require('lodash');
 
 /**
- * @Route("GET /clear-completed/<token:string>")
+ * @Route("GET /clear-completed/<csrfToken:string>")
  * @Query("destination", type="string", default="/")
+ * @Csrf(true)
  */
 class ClearCompletedRoute {
   /**
@@ -20,15 +21,6 @@ class ClearCompletedRoute {
       request.status = 303;
       return '';
     };
-  }
-
-  /**
-   * Validate CSRF token.
-   */
-  prevalidation(token, csrfToken) {
-    if (token !== csrfToken) {
-      throw new Error('Invalid CSRF token');
-    }
   }
 
   /**

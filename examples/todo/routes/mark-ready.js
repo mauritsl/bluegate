@@ -1,8 +1,9 @@
 'use strict';
 
 /**
- * @Route("GET /mark-ready/<id:uuid>/<token:string>/<completed:bool>")
+ * @Route("GET /mark-ready/<id:uuid>/<csrfToken:string>/<completed:bool>")
  * @Query("destination", type="string", default="/")
+ * @Csrf(true)
  */
 class MarkReadyRoute {
   /**
@@ -18,15 +19,6 @@ class MarkReadyRoute {
       request.status = 303;
       return '';
     };
-  }
-
-  /**
-   * Validate CSRF token.
-   */
-  prevalidation(token, csrfToken) {
-    if (token !== csrfToken) {
-      throw new Error('Invalid CSRF token');
-    }
   }
 
   /**

@@ -17,12 +17,13 @@ const config = rc('todo', {
  */
 const app = new BlueGate();
 
-require('bluegate-session')(app);
 require('bluegate-class')(app);
-require('bluegate-static')(app);
 require('bluegate-handlebars')(app);
+require('bluegate-session')(app);
+require('bluegate-static')(app);
+require('bluegate-csrf')(app);
 
-app.listen(config.port).then(() => {
+app.ready = app.listen(config.port).then(() => {
   console.log('Listening on port :' + config.port);
 });
 
@@ -30,23 +31,9 @@ app.listen(config.port).then(() => {
  * Add an error callback to log internal errors.
  */
 app.error(function() {
-  console.error(this.error);
+  if (this.status !== 404) {
+    console.error(this.error);
+  }
 });
 
-/**
- * Register a CSRF token on every request.
- *
- * The token is based on the session id for simplicity.
- * But only use the first 8 bytes (out of 16) to avoid
- * leaking the session id.
- *
- * @see https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
- */
-app.initialize(function(session) {
-  let token = '0';
-  if (session) {
-    const id = session.getId();
-    token = String(id).substring(0, 8);
-  }
-  this.setParameter('csrfToken', token);
-});
+module.exports = app;
