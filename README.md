@@ -50,6 +50,9 @@ app.process('GET /user/<id:int>/picture', function(id) {
 );
 ```
 
+See the [Todo example](https://github.com/mauritsl/bluegate/tree/master/examples/todo)
+for a more complete example.
+
 ## Request flow
 
 Each request follows the steps below:
