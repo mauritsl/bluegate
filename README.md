@@ -17,6 +17,7 @@ request flow that fits both REST API's and complex multi-tier applications.
 BlueGate can be extended with the following modules:
 
 * [class](https://www.npmjs.com/package/bluegate-class) to use ES6 classes to write routes.
+* [csrf](https://github.com/mauritsl/bluegate-csrf) for CSRF protection.
 * [handlebars](https://www.npmjs.com/package/bluegate-handlebars) for template rendering.
 * [session](https://www.npmjs.com/package/bluegate-session) for session support.
 * [static](https://www.npmjs.com/package/bluegate-static) to serve static assets.
