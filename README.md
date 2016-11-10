@@ -105,7 +105,7 @@ Name       | Type    | Example               | Read only?
 host       | string  | www.example.com       | yes
 path       | string  | /user/john            | yes
 method     | string  | GET                   | yes
-body       | buffer* |                       | yes
+body       | *       |                       | yes
 mime       | string  | text/html             | no
 status     | int     | 200                   | no
 query      | object  | ['page']              | yes
@@ -115,8 +115,25 @@ ip         | string  | 127.0.0.1             | yes
 date       | date    |                       | yes
 secure     | bool    | false                 | yes
 parameters | object  | {...}                 | yes
+multipartBoundary | string |                 | yes
 
-* Body is an object for JSON and urlencoded input.
+The body type is dependent on the Content-Type header sent by the client.
+
+Content-Type          | Type
+----------------------|-------
+application/json      | object
+application/form-data | object
+text/*                | buffer
+*/*                   | [Readable stream](https://nodejs.org/dist/latest-v6.x/docs/api/stream.html#stream_class_stream_readable)
+
+The ``multipartBoundary`` property is only set when the Content-Type header was set to ``multipart/*``.
+Parsing multipart data is not done by this framework, since the application may stream the input directly to
+files or external storage, which is beyond the scope of BlueGate. Popular modules for parsing are
+[busboy](https://www.npmjs.com/package/busboy),
+[multiparty](https://www.npmjs.com/package/multiparty) and
+[dicer](https://www.npmjs.com/package/dicer).
+See the [upload example]([Todo example](https://github.com/mauritsl/bluegate/tree/master/examples/upload)
+for more information on how to handle ``multipart/form-data`` requests and file uploads.
 
 ### Path parameters
 
@@ -386,3 +403,6 @@ var app = new BlueGate({
   maxInputSize: 1024 * 64 // 64 KB
 });
 ```
+
+The maximum input size does not apply to posted streams (e.g. multipart data).
+A process function can stop the upload by sending a response, ignoring the stream.

@@ -7,6 +7,7 @@ var chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 var expect = chai.expect;
 
+var crypto = require('crypto');
 var net = require('net');
 var needle = Promise.promisifyAll(require('needle'), {multiArgs: true});
 var Readable = require('stream').Readable;
@@ -1028,5 +1029,176 @@ describe('BlueGate', function() {
         done();
       });
     });
+  });
+
+  it('will set multipartBoundary on multipart request', function(done) {
+    var multipartBoundary;
+    var boundary = crypto.randomBytes(6).toString('base64');
+    BlueGate.process('POST /multipart-test', function() {
+      multipartBoundary = this.multipartBoundary;
+    });
+    var socket = net.connect(netOptions);
+    var content = new Buffer('\r\n'
+      + '--' + boundary + '\r\n'
+      + 'Content-Disposition: form-data; name="file"; filename="test.txt"\r\n'
+      + 'Content-Type: text/plain\r\n\r\n'
+      + 'Lorem\r\n'
+      + '--' + boundary + '\r\n');
+    socket.on('connect', function() {
+      socket.write('POST /multipart-test HTTP/1.0\r\n'
+        + 'Content-Type: multipart/mixed; boundary="' + boundary + '"\r\n'
+        + 'Content-Length: ' + content.byteLength + '\r\n'
+        + 'Connection: Close\r\n\r\n');
+      socket.end(content);
+    }).on('data', function(chunk) {}).on('close', function() {
+      expect(multipartBoundary).to.equal(boundary);
+      done();
+    });
+  });
+
+  it('will not set multipartBoundary on non-multipart request', function() {
+    BlueGate.process('POST /multipart-test', function() {
+      return {boundary: this.multipartBoundary};
+    });
+    var input = {foo: 'bar'};
+    var options = {json: true};
+    return needle.postAsync(url + '/multipart-test', input, options).then(function(data) {
+      var body = data[1];
+      expect(body).to.be.an('object');
+      expect(body).to.have.property('boundary');
+      expect(body.boundary).to.equal(null);
+    });
+  });
+
+  it('will provide Readable stream for multipart requests', function() {
+    BlueGate.process('POST /multipart-stream-test', function(id) {
+      return {isReadable: this.body instanceof Readable};
+    });
+    var input = {
+      file: {
+        buffer: new Buffer('test'),
+        filename: 'test.txt',
+        content_type: 'text/plain'
+      }
+    };
+    var options = {multipart: true};
+    return needle.postAsync(url + '/multipart-stream-test', input, options).then(function(data) {
+      var body = data[1];
+      expect(body.isReadable).to.equal(true);
+    });
+  });
+
+  it('will start processing multipart request before finishing uploads', function(done) {
+    var processStarted = false;
+    var processFinished = false;
+    var requestFinished = false;
+    BlueGate.process('POST /slow-upload', function(id) {
+      processStarted = true;
+      var self = this;
+      return new Promise(function(resolve, reject) {
+        self.body.on('data', function(data) {});
+        self.body.on('end', function() {
+          processFinished = true;
+          resolve({});
+        });
+      });
+    });
+    var boundary = crypto.randomBytes(6).toString('base64');
+    var socket = net.connect(netOptions);
+    var content = new Buffer('\r\n'
+      + '--' + boundary + '\r\n'
+      + 'Content-Disposition: form-data; name="file"; filename="snail.zip"\r\n'
+      + 'Content-Type: application/zip\r\n'
+      + 'Content-Transfer-Encoding: binary\r\n\r\n'
+      + crypto.randomBytes(128).toString() + "\r\n"
+      + '--' + boundary + '\r\n');
+    socket.on('connect', function() {
+      socket.write('POST /slow-upload HTTP/1.0\r\n'
+        + 'Content-Type: multipart/form-data; boundary="' + boundary + '"\r\n'
+        + 'Content-Length: ' + content.byteLength + '\r\n'
+        + 'Connection: Close\r\n\r\n');
+      setTimeout(function() {
+        expect(processStarted).to.equal(true);
+        expect(processFinished).to.equal(false);
+        expect(requestFinished).to.equal(false);
+        socket.end(content);
+      }, 25);
+      setTimeout(function() {
+        expect(processStarted).to.equal(true);
+        expect(processFinished).to.equal(true);
+        expect(requestFinished).to.equal(true);
+        done();
+      }, 50);
+    }).on('data', function(chunk) {}).on('close', function() {
+      requestFinished = true;
+    });
+  });
+
+  it('will close connection when still uploading data after process', function(done) {
+    var socket = net.connect(netOptions);
+    BlueGate.process('POST /slowloris', function(id) {
+      return {};
+    });
+    var size = 64;
+    socket.on('connect', function() {
+      socket.write('POST /slowloris HTTP/1.0\r\n'
+        + 'Content-Type: multipart/form-data; boundary="a"\r\n'
+        + 'Content-Length: ' + size + '\r\n'
+        + 'Connection: Close\r\n\r\n');
+      var write = function() {
+        if (size--) {
+          socket.write('.');
+          setTimeout(write, 10);
+        }
+        else {
+          socket.end();
+        }
+      };
+      write();
+    }).on('data', function(chunk) {}).on('close', function() {
+      // Connection should be closed before we could write all bytes.
+      expect(size).to.not.equal(0);
+      size = 0;
+      done();
+    }).on('error', function() {});
+  });
+
+  it('can process postdata beyond the default postdata limit', function(done) {
+    var chunkSize = 1024 * 1024;
+    var chunks = 16;
+    var size = chunks * chunkSize;
+    var received = 0;
+    var socket = net.connect(netOptions);
+    BlueGate.process('POST /large-upload', function() {
+      var self = this;
+      return new Promise(function(resolve, reject) {
+        self.body.on('data', function(chunk) {
+          received += chunk.length;
+        });
+        self.body.on('end', function() {
+          resolve({});
+        });
+      });
+    });
+    socket.on('connect', function() {
+      socket.write('POST /large-upload HTTP/1.0\r\n'
+        + 'Content-Type: application/octet-stream\r\n'
+        + 'Content-Length: ' + size + '\r\n'
+        + 'Connection: Close\r\n\r\n');
+      var chunk = crypto.randomBytes(1024 * 1024);
+      var write = function() {
+        if (chunks--) {
+          socket.write(chunk);
+          setImmediate(write);
+        }
+        else {
+          socket.end();
+        }
+      };
+      write();
+    }).on('data', function(chunk) {}).on('close', function() {
+      expect(received).to.equal(size);
+      done();
+    }).on('error', function(error) {});
   });
 });

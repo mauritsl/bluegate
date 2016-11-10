@@ -26,7 +26,7 @@ var BlueGate = function(options) {
   if (typeof options !== 'object') {
     options = {};
   }
-  this._options = _.defaults(options, {
+  this._options = options = _.defaults(options, {
     trustedProxies: ['127.0.0.1'],
     clickjacking: 'deny',
     noMimeSniffing: true,
@@ -37,9 +37,19 @@ var BlueGate = function(options) {
   this._app = connect();
 
   this._app.use(bodyParser.urlencoded({extended: false}));
-  this._app.use(bodyParser.json({limit: this._options.maxInputSize}));
-  this._app.use(bodyParser.text({type: 'text/*'}));
-  this._app.use(bodyParser.raw({type: '*/*'}));
+  this._app.use(function(req, res, next) {
+    // Set body to stream if posting data not yet processed by the bodyparser.
+    if (req.method === 'POST' && typeof req.headers['content-type'] === 'string') {
+      req.body = new Readable();
+      req.body.wrap(req);
+      // Parse the boundary for multipart data.
+      var boundary = req.headers['content-type'].match(/^multipart\/.+?(?:; boundary=(?:(?:"(.+)")|(?:([^\s]+))))$/i);
+      req.multipartBoundary = boundary ? boundary[1] || boundary[2] : null;
+    }
+    next();
+  });
+  this._app.use(bodyParser.json({limit: options.maxInputSize}));
+  this._app.use(bodyParser.text({type: 'text/*', limit: this._options.maxInputSize}));
   this._app.use(cookieParser());
   this._app.use(compression());
 
@@ -211,6 +221,7 @@ BlueGate.prototype.generateScope = function(req) {
     path: urlParts.pathname.replace(/(.)\/+$/, '$1'),
     method: req.method,
     body: req.body,
+    multipartBoundary: req.multipartBoundary,
     mime: null,
     status: 200,
     query: Object.keys(urlParts.query),
