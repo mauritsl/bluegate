@@ -1,0 +1,17 @@
+{
+  "name": "upload",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bluegate": "^1.1.13",
+    "bluegate-class": "^1.0.1",
+    "bluegate-handlebars": "^1.0.0",
+    "dicer": "^0.2.5"
+  }
+}

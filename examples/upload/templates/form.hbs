@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Form</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.4/foundation-flex.min.css" />
+</head>
+<body>
+  <div class="row">
+    <div class="small-12 columns">
+      <h1>Form</h1>
+    </div>
+  </div>
+
+  {{# if messages }}
+  <div class="row">
+    <div class="columns">
+      {{#each messages}}
+        <div class="callout alert">{{this}}</div>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  <form action="/" method="post" enctype="multipart/form-data">
+    <div class="row">
+      <div class="columns">
+        <label>
+          Select file:
+          <input type="file" name="file" />
+        </label>
+      </div>
+      <div class="columns">
+        <label>
+          Name:
+          <input type="text" name="name" value="" />
+        </label>
+      </div>
+      <div class="columns">
+        <input type="submit" class="button" value="Upload" />
+      </div>
+    </div>
+  </form>
+
+</body>
+</html>
