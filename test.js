@@ -1044,6 +1044,10 @@ describe('BlueGate', function() {
       + 'Content-Type: text/plain\r\n\r\n'
       + 'Lorem\r\n'
       + '--' + boundary + '\r\n');
+    // Node 0.12 doesn't know byteLength.
+    if (typeof content.byteLength === 'undefined') {
+      content.byteLength = content.length;
+    }
     socket.on('connect', function() {
       socket.write('POST /multipart-test HTTP/1.0\r\n'
         + 'Content-Type: multipart/mixed; boundary="' + boundary + '"\r\n'
@@ -1112,6 +1116,10 @@ describe('BlueGate', function() {
       + 'Content-Transfer-Encoding: binary\r\n\r\n'
       + crypto.randomBytes(128).toString() + "\r\n"
       + '--' + boundary + '\r\n');
+    // Node 0.12 doesn't know byteLength.
+    if (typeof content.byteLength === 'undefined') {
+      content.byteLength = content.length;
+    }
     socket.on('connect', function() {
       socket.write('POST /slow-upload HTTP/1.0\r\n'
         + 'Content-Type: multipart/form-data; boundary="' + boundary + '"\r\n'
