@@ -36,7 +36,6 @@ var BlueGate = function(options) {
 
   this._app = connect();
 
-  this._app.use(bodyParser.urlencoded({extended: false}));
   this._app.use(function(req, res, next) {
     // Set body to stream if posting data not yet processed by the bodyparser.
     if (req.method === 'POST' && typeof req.headers['content-type'] === 'string') {
@@ -48,6 +47,7 @@ var BlueGate = function(options) {
     }
     next();
   });
+  this._app.use(bodyParser.urlencoded({extended: false}));
   this._app.use(bodyParser.json({limit: options.maxInputSize}));
   this._app.use(bodyParser.text({type: 'text/*', limit: this._options.maxInputSize}));
   this._app.use(cookieParser());

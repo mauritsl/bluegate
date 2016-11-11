@@ -1209,4 +1209,33 @@ describe('BlueGate', function() {
       done();
     }).on('error', function(error) {});
   });
+
+  it('will convert text/xml input to string', function(done) {
+    var body;
+    BlueGate.process('POST /xml-input', function() {
+      body = this.body;
+    });
+    var socket = net.connect(netOptions);
+    var data = '';
+    socket.on('connect', function() {
+      socket.end("POST /xml-input HTTP/1.0\r\nContent-Type: text/xml\r\nContent-Length: 4\r\nConnection: Close\r\n\r\ntest");
+    }).on('data', function(chunk) {
+      data += chunk.toString();
+    }).on('close', function() {
+      expect(body).to.equal('test');
+      done();
+    });
+  });
+
+  it('will convert form data to object', function() {
+    var body;
+    BlueGate.process('POST /form-data', function() {
+      body = this.body;
+      return {};
+    });
+    return needle.postAsync(url + '/form-data', {foo: 'bar'}).then(function(data) {
+      expect(body).to.be.an('object');
+      expect(body).to.have.property('foo');
+    });
+  });
 });
