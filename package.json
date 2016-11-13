@@ -4,7 +4,7 @@
   "description": "Promise based web framework",
   "main": "bluegate.js",
   "scripts": {
-    "test": "(multi='spec=- mocha-lcov-reporter=lcov.txt' mocha -b --require ./blanket.js -t 5s -R mocha-multi test.js) && eslint *.js",
+    "test": "(multi='spec=- mocha-lcov-reporter=lcov.txt' mocha -b --require ./blanket.js -t 5s -R mocha-multi test.js) && eslint bluegate.js test.js",
     "coverage": "mocha --require ./blanket.js -R html-cov test.js > coverage.html",
     "rapidity": "mocha --require rapidity -R rapidity test.js > performance.html"
   },
@@ -41,8 +41,7 @@
     "connect": "^3.4.1",
     "cookie-parser": "^1.3.4",
     "forwarded-for": "^1.0.0",
-    "lodash": "^4.13.1",
-    "retrieve-arguments": "^1.0.1"
+    "lodash": "^4.13.1"
   },
   "devDependencies": {
     "blanket": "1.1.9",

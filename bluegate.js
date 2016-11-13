@@ -13,7 +13,6 @@ var compression = require('compression');
 var http = require('http');
 var Promise = require('bluebird');
 var url = require('url');
-var retrieveArguments = require('retrieve-arguments');
 var forwarded = require('forwarded-for');
 var _ = require('lodash');
 var Readable = require('stream').Readable;
@@ -319,7 +318,16 @@ BlueGate.prototype.handleRequest = function(req, res, next) {
         var args = [];
         var scope = this;
         callback.arguments.forEach(function(name) {
-          var value = callback.params[name];
+          var value;
+          // Pass a reference to the scope when name is "request".
+          // This can be used in ES6 functions instead of "this".
+          if (name === 'request') {
+            value = scope;
+          }
+          // Add path parameters.
+          if (typeof callback.params[name] !== 'undefined') {
+            value = callback.params[name];
+          }
           // Extra parameters are set using scope.setParameter, and override the path parameters.
           if (typeof scope.extraParameters[name] !== 'undefined') {
             value = scope.extraParameters[name];
@@ -515,6 +523,19 @@ var errorHandler = function() {
   };
   var error = typeof messages[this.status] === 'undefined' ? 500 : messages[this.status];
   this.output = {errors: [error]};
+};
+
+/**
+ * List function arguments.
+ */
+var retrieveArguments = function(fn) {
+  var code = fn.toString();
+  var match = code.match(/(?:function)?[\s]*\(([^)]*)\)/);
+  return match[1].split(',').map(function(item) {
+    return item.trim();
+  }).filter(function(item) {
+    return item;
+  });
 };
 
 module.exports = BlueGate;

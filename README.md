@@ -34,18 +34,18 @@ var BlueGate = require('bluegate');
 var app = new BlueGate();
 app.listen(8080); // Port or unix socket.
 
-app.postvalidation('GET /user/<id:int>', function(id) {
+app.postvalidation('GET /user/<id:int>', (id) => {
   if (id === 123) {
     throw Error('This is not a valid user id');
   }
 });
-app.process('GET /user/<id:int>', function(id) {
+app.process('GET /user/<id:int>', (id) => {
   // Return page content or promise for content.
   return {id: id};
 });
 
-app.process('GET /user/<id:int>/picture', function(id) {
-  this.mime = 'image/jpeg';
+app.process('GET /user/<id:int>/picture', (request, id) => {
+  request.mime = 'image/jpeg';
   return new Buffer('...');
 );
 ```
@@ -86,7 +86,21 @@ can be omitted to enable the handler for all requests.
 ### Input
 
 Handler functions can accept input via both function arguments and the local
-scope (``this``).
+scope (``this``). The local scope is only accessible when using ES5 functions.
+For ES6 functions you may add the ``request`` parameter. The following
+examples are identical:
+
+```javascript
+// ES5
+app.process('GET /list', function() {
+  var page = this.getQuery('page', 'int', 1);
+});
+// ES6
+app.process('GET /list', (request) {
+  var page = request.getQuery('page', 'int', 1);
+});
+```
+
 Input from path parameters is mapped to function arguments. Function arguments
 that do not have a parameter will get ``undefined`` as value.
 
@@ -97,8 +111,9 @@ app.process('GET /user/<name:string>', function(type, name) {
 });
 ```
 
-Other input is available in the local scope, accessible with ``this.*``.
-The table below lists all available variables.
+Other input is available in the local scope (``this.*``) or request parameter
+(``request.*``).
+The table below lists all available variables and functions.
 
 Name       | Type    | Example               | Read only?
 -----------|---------|-----------------------|-----------

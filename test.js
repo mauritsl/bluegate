@@ -1238,4 +1238,33 @@ describe('BlueGate', function() {
       expect(body).to.have.property('foo');
     });
   });
+
+  it('will pass a reference to the scope when using the "request" parameter', function() {
+    BlueGate.process('GET /request-param', function(request) {
+      return {query: request.getQuery('test', 'int')};
+    });
+    return needle.getAsync(url + '/request-param?test=123').then(function(data) {
+      expect(data[1]).to.have.property('query', 123);
+    });
+  });
+
+  it('path parameters take precedence over the scope for the "request" parameter', function() {
+    BlueGate.process('GET /request-param/<request:string>', function(request) {
+      return {type: typeof request};
+    });
+    return needle.getAsync(url + '/request-param/test').then(function(data) {
+      expect(data[1]).to.have.property('type', 'string');
+    });
+  });
+
+  // Check if we are running at least NodeJS version 4.
+  // ES6 function support will be tested, but is not supported on older versions.
+  if (parseInt(process.version.match(/^v?([0-9]+)/)[1]) >= 4) {
+    var es6 = require('./test-es6');
+    Object.keys(es6).forEach(function(key) {
+      it(key, function() {
+        return es6[key](BlueGate, url);
+      });
+    });
+  }
 });

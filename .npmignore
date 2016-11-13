@@ -9,5 +9,6 @@ lcov.txt
 coverage
 test
 test.js
+test-es6.js
 examples
 
