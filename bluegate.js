@@ -530,8 +530,12 @@ var errorHandler = function() {
  */
 var retrieveArguments = function(fn) {
   var code = fn.toString();
-  var match = code.match(/(?:function)?[\s]*\(([^)]*)\)/);
-  return match[1].split(',').map(function(item) {
+  var match = code.match(/^(?:(?:function)?[\s]*\(([^)]*)\)|([^\=\(]+))/);
+  var args = (match[1] || match[2]);
+  if (typeof args === 'undefined') {
+    return [];
+  }
+  return args.split(',').map(function(item) {
     return item.trim();
   }).filter(function(item) {
     return item;

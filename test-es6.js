@@ -41,5 +41,14 @@ module.exports = {
     return needle.getAsync(url + '/es6/request?test=123').then(function(data) {
       expect(data[1]).to.have.property('test', 123);
     });
+  },
+
+  'can accept ES6 functions without parentheses around function arguments': (BlueGate, url) => {
+    BlueGate.process('GET /es6/param/<test:int>', test => {
+      return {test};
+    });
+    return needle.getAsync(url + '/es6/param/123').then(function(data) {
+      expect(data[1]).to.have.property('test', 123);
+    });
   }
 };
