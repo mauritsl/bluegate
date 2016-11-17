@@ -37,7 +37,7 @@ var BlueGate = function(options) {
 
   this._app.use(function(req, res, next) {
     // Set body to stream if posting data not yet processed by the bodyparser.
-    if (req.method === 'POST' && typeof req.headers['content-type'] === 'string') {
+    if (['GET', 'HEAD'].indexOf(req.method) < 0 && typeof req.headers['content-type'] === 'string') {
       req.body = new Readable();
       req.body.wrap(req);
       // Parse the boundary for multipart data.

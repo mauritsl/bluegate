@@ -147,7 +147,7 @@ files or external storage, which is beyond the scope of BlueGate. Popular module
 [busboy](https://www.npmjs.com/package/busboy),
 [multiparty](https://www.npmjs.com/package/multiparty) and
 [dicer](https://www.npmjs.com/package/dicer).
-See the [upload example]([Todo example](https://github.com/mauritsl/bluegate/tree/master/examples/upload)
+See the [upload example](https://github.com/mauritsl/bluegate/tree/master/examples/upload)
 for more information on how to handle ``multipart/form-data`` requests and file uploads.
 
 ### Path parameters
